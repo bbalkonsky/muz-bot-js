@@ -1,5 +1,7 @@
 import services from './info'
-import Message from "./model/message";
+import IMessage from "./model/IMessage";
+import {response, songResponse} from "./resp";
+import ISong from "./model/ISong";
 
 function isItLink(messageText: string): boolean {
     for (let service in services) {
@@ -9,6 +11,7 @@ function isItLink(messageText: string): boolean {
     }
     return false;
 }
+// console.log(isItLink(response.text))
 
 
 // вместо ссылочки можно вот так попробовать
@@ -27,8 +30,9 @@ function descriptionTextAndUrl(messageText: string, service: string): string[] {
     const url = messageText.slice(urlPosition).match(re)[0];
     return [urlPosition ? messageText.slice(0, urlPosition - 1) : '', url];
 }
+// console.log(descriptionTextAndUrl(response.text, 'open.spotify.com'))
 
-function sentBy(message: Message, url: string): string {
+function sentBy(message: IMessage, url: string): string {
     let name;
     if (message.from_user.first_name && message.from_user.last_name) {
         name = `${message.from_user.first_name} ${message.from_user.last_name}`;
@@ -41,13 +45,17 @@ function sentBy(message: Message, url: string): string {
     }
     return `Sent by[:](${url}) ${name}`;
 }
+// console.log(sentBy(response, 'ssilochka'))
 
 
 function searchVk(songName: string): any {
-    const newSongName = songName.replace(' ', '%20').replace(
-        '(', '%28').replace(')', '%29');
+    const newSongName = songName
+        .replace(/\s/g, '%20')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29');
     return (services['vk']['alias'], `https://vk.com/search?c%5Bper_page%5D=200&c%5Bq%5D=${newSongName}&c%5Bsection%5D=audio`)
 }
+// console.log(searchVk('pidor - pro chlen ((extended))'))
 
 function getSongName(response): string {
     const entities = JSON.parse(response.text);
@@ -55,3 +63,10 @@ function getSongName(response): string {
     const firstEntity = entities[keys[0]];
     return `${firstEntity.artistName} - ${firstEntity.title}`
 }
+
+function getSongThumb(response): string {
+    const res: ISong = JSON.parse(response);
+    const keys = Object.keys(res.entitiesByUniqueId);
+    return res.entitiesByUniqueId[keys[0]].thumbnailUrl;
+}
+// console.log(getSongThumb(songResponse));
