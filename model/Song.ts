@@ -1,4 +1,4 @@
-export default interface ISong {
+export default interface Song {
     entityUniqueId: string,
     userCountry: string,
     pageUrl: string,
@@ -7,7 +7,7 @@ export default interface ISong {
 }
 
 interface ILinksByPlatform {
-    entityUniqueId: string,
+    entityUniqueId?: string,
     url: string,
     nativeAppUriMobile?: string,
     nativeAppUriDesktop?: string,

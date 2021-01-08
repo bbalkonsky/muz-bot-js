@@ -1,72 +1,88 @@
-import services from './info'
-import IMessage from "./model/IMessage";
-import {response, songResponse} from "./resp";
-import ISong from "./model/ISong";
+import {TelegrafContext} from "telegraf/typings/context";
 
-function isItLink(messageText: string): boolean {
-    for (let service in services) {
-        if (messageText.includes(services[service].link)) {
-            return true;
+require('dotenv').config();
+import fs from 'fs';
+import {Telegraf, Telegram} from 'telegraf';
+import {platforms} from "./info";
+import {createConnection} from "typeorm";
+import {Chat} from "./database/entities/Chat";
+import {ChatState} from "./database/entities/ChatState";
+import {ChatPlatforms} from "./database/entities/ChatPlatforms";
+import {Messages} from "./database/entities/Messages";
+import session from 'telegraf/session';
+import Stage from 'telegraf/stage';
+import contactsScene from "./menu/sendScene";
+import {
+    getBack, getClose,
+    getHelp,
+    getHelpOption,
+    getMainMenu, getPlatformOption,
+    getPlatforms,
+    getDonations, getSettings, getStateOption, messageHandler, startMdlwr,
+    startContactsScene
+} from "./menu/middlewares";
+
+// @ts-ignore
+export const bot = new Telegraf(process.env.TELEGRAM_TOKEN, {channelMode: true});
+
+const connection = createConnection({
+    type: "sqlite",
+    database: process.env.DBASE_PATH,
+    entities: [Chat, ChatState, ChatPlatforms, Messages],
+    // synchronize: true
+});
+
+// Create scene manager
+const stage = new Stage([contactsScene])
+
+bot.use(session());
+session.messageToDelete = {};
+
+bot.use(stage.middleware());
+
+bot.command('start', startMdlwr);
+bot.command('menu', getMainMenu);
+
+bot.action('contacts', startContactsScene);
+bot.action('platforms', getPlatforms);
+bot.action('settings', getSettings);
+bot.action('donate', getDonations);
+bot.action('help', getHelp);
+bot.action(/helpOption:[0-9]/, getHelpOption);
+bot.action(/platform:[\w]+/, getPlatformOption);
+bot.action(/state:[\w]+/, getStateOption);
+bot.action('back', getBack);
+bot.action('close', getClose);
+
+bot.catch((error: any) => {
+    console.error(error);
+});
+
+bot.on(['message', 'channel_post'], messageHandler);
+
+process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
+
+function startDevMode(bot: Telegraf<TelegrafContext>) {
+    bot.startPolling();
+}
+
+async function startProdMode(bot: Telegraf<TelegrafContext>) {
+    console.log('Starting a bot in production mode');
+    const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
+    const tlsOptions = {
+        key: fs.readFileSync(process.env.PATH_TO_KEY),
+        cert: fs.readFileSync(process.env.PATH_TO_CERT)
+    };
+
+    await bot.telegram.setWebhook(
+        `${process.env.WEBHOOK_URL}:${process.env.WEBHOOK_PORT}/${process.env.TELEGRAM_TOKEN}`,
+        {
+            source: 'cert.pem'
         }
-    }
-    return false;
+    );
+
+    await bot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
+
+    const webhookStatus = await telegram.getWebhookInfo();
+    console.log('Webhook status', webhookStatus);
 }
-// console.log(isItLink(response.text))
-
-
-// вместо ссылочки можно вот так попробовать
-// bot.send_message('126017510', parse_mode='markdown', text='sdfsdfv[\u200B](https://i.scdn.co/image/ab67616d0000b273ad47eb37aa3ff2a1befc783f)')
-
-
-function toggleService(toToggle: string, userServices: any[]): any[] {
-    const newServices = userServices;
-    newServices[toToggle] = newServices[toToggle] ? 0 : 1;
-    return newServices;
-}
-
-function descriptionTextAndUrl(messageText: string, service: string): string[] {
-    const re = new RegExp(`[^\\s]*${service}[^\\s]+`);
-    const urlPosition = messageText.search(re);
-    const url = messageText.slice(urlPosition).match(re)[0];
-    return [urlPosition ? messageText.slice(0, urlPosition - 1) : '', url];
-}
-// console.log(descriptionTextAndUrl(response.text, 'open.spotify.com'))
-
-function sentBy(message: IMessage, url: string): string {
-    let name;
-    if (message.from_user.first_name && message.from_user.last_name) {
-        name = `${message.from_user.first_name} ${message.from_user.last_name}`;
-    } else if (message.from_user.username) {
-        name = `${message.from_user.username}`;
-    } else if (message.from_user.first_name) {
-        name = `${message.from_user.first_name}`;
-    } else {
-        name = `GODS OF MUSIC`;
-    }
-    return `Sent by[:](${url}) ${name}`;
-}
-// console.log(sentBy(response, 'ssilochka'))
-
-
-function searchVk(songName: string): any {
-    const newSongName = songName
-        .replace(/\s/g, '%20')
-        .replace(/\(/g, '%28')
-        .replace(/\)/g, '%29');
-    return (services['vk']['alias'], `https://vk.com/search?c%5Bper_page%5D=200&c%5Bq%5D=${newSongName}&c%5Bsection%5D=audio`)
-}
-// console.log(searchVk('pidor - pro chlen ((extended))'))
-
-function getSongName(response): string {
-    const entities = JSON.parse(response.text);
-    const keys = entities['entitiesByUniqueId'].keys();
-    const firstEntity = entities[keys[0]];
-    return `${firstEntity.artistName} - ${firstEntity.title}`
-}
-
-function getSongThumb(response): string {
-    const res: ISong = JSON.parse(response);
-    const keys = Object.keys(res.entitiesByUniqueId);
-    return res.entitiesByUniqueId[keys[0]].thumbnailUrl;
-}
-// console.log(getSongThumb(songResponse));

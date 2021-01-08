@@ -1,19 +1,34 @@
-const services = {
-    'appleMusic': {'name': 'appleMusic', 'alias': 'Apple Music', 'link': 'music.apple.com'},
-    'spotify': {'name': 'spotify', 'alias': 'Spotify', 'link': 'open.spotify.com'},
-    'deezer': {'name': 'deezer', 'alias': 'Deezer', 'link': 'deezer.com'},
-    'yandex': {'name': 'yandex', 'alias': 'Yandex Music', 'link': 'music.yandex.ru'},
-    'google': {'name': 'google', 'alias': 'Google Play', 'link': 'play.google.com'},
-    'youtubeMusic': {'name': 'youtubeMusic', 'alias': 'YouTube Music', 'link': 'music.youtube.com'},
-    'tidal': {'name': 'tidal', 'alias': 'Tidal', 'link': 'tidal.com'},
-    'pandora': {'name': 'pandora', 'alias': 'Pandora', 'link': 'pandora.com'},
-    'soundcloud': {'name': 'soundcloud', 'alias': 'SoundCloud', 'link': 'soundcloud.com'},
-    'napster': {'name': 'napster', 'alias': 'Napster', 'link': 'napster.com'},
-    'fanburst': {'name': 'fanburst', 'alias': 'Fanburst', 'link': 'fanburst.com'},
-    'vk': {'name': 'vk', 'alias': 'VKontakte', 'link': 'vkhasnolink'},
-    'youtube': {'name': 'youtube', 'alias': 'YouTube', 'link': 'youtube.com'},
-    'amazonMusic': {'name': 'amazonMusic', 'alias': 'Amazon Music', 'link': 'music.amazon.com'},
-    'spinrilla': {'name': 'spinrilla', 'alias': 'Spinrilla', 'link': 'spinrilla.com'}
+export const platforms: PlatformList = {
+    spotify: {alias: 'Spotify', link: 'spotify.com'},
+    appleMusic: {alias: 'Apple Music', link: 'music.apple.com'},
+    youtube: {alias: 'YouTube', link: 'youtube.com'},
+    yandex: {alias: 'Yandex Music', link: 'music.yandex.ru'},
+    youtubeMusic: {alias: 'YouTube Music', link: 'music.youtube.com'},
+    deezer: {alias: 'Deezer', link: 'deezer.com'},
+    soundcloud: {alias: 'SoundCloud', link: 'soundcloud.com'},
+    // google: {alias: 'Google Play', link: 'play.google.com'},
+    tidal: {alias: 'Tidal', link: 'tidal.com'},
+    // 'pandora': {alias: 'Pandora', link: 'pandora.com'},
+    // 'napster': {alias: 'Napster', link: 'napster.com'},
+    // 'fanburst': {alias: 'Fanburst', link: 'fanburst.com'},
+    vk: {alias: 'VKontakte', link: ''},
+    // 'amazonMusic': {alias: 'Amazon Music', link: 'music.amazon.com'},
+    // 'spinrilla': {alias: 'Spinrilla', link: 'spinrilla.com'}
 };
+type PlatformList = {
+    [key: string]: {
+        alias: string,
+        link: string
+    }
+}
 
-export default services;
+export const instRu = {
+        0: 'Просто отправь Боту ссылку на песню (или музыкальное видео из YouTube) из своего ' +
+            'любимого музыкального сервиса',
+        1: 'Ты можешь изменить список платформ для отображения во вкладке "Платформы" (нет, это не шутка)',
+        2: 'Если Бот добавлен в группу или канал, он будет удалять сообщение, на которое отвечает, если ему ' +
+            'предоставить права администратора (отметки "Все пользователи являются администраторами" недостаточно)' +
+            '\nP.S. Сразу отвечу: нет, бот не логирует все сообщения и нет, никто их не отправялет товарищу майору, ' +
+            'это же не сервис от Яндекс ¯\\_(ツ)_/¯',
+        3: 'Опция "Аннотации" отвечает за отображение текста, введенного перед ссылкой на песню'
+    }
