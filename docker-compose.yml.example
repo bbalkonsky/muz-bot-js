@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
+    env_file: 
       - .env
     ports:
       - 3000

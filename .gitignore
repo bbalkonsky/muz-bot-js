@@ -4,3 +4,4 @@
 dist/**/*
 .idea
 docker-compose.yml
+muzshare.sqlite
