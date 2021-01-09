@@ -33,7 +33,6 @@ export async function getCancel(ctx) {
 }
 
 async function sendMessageToCreator(ctx) {
-    console.log(ctx.chat)
     if (session.messageToDelete[ctx.chat.id]) {
         await bot.telegram.deleteMessage(ctx.chat.id, session.messageToDelete[ctx.chat.id]);
         delete session.messageToDelete[ctx.chat.id];

@@ -3,7 +3,7 @@ import {
     getMainMenuButtons,
     getPlatformsButtons,
     getSettingsButtons,
-    getDonationsButtons, getLeaveSceneButton
+    getDonationsButtons,
 } from "./buttons";
 import {Markup} from "telegraf";
 import {SceneContextMessageUpdate} from "telegraf/typings/stage";
