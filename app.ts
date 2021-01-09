@@ -35,7 +35,7 @@ const connection = createConnection({
     type: "sqlite",
     database: process.env.DBASE_PATH,
     entities: [Chat, ChatState, ChatPlatforms, Messages],
-    // synchronize: true
+    synchronize: true
 });
 
 // Create scene manager
