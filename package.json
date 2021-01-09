@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "./node_modules/typescript/bin/tsc",
     "start": "tsc && node dist/app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "tslint": "^6.1.2",
-    "typescript": "^3.9.3"
+    "tslint": "^6.1.2"
   },
   "dependencies": {
     "@types/node": "^14.0.20",
@@ -23,6 +23,7 @@
     "sqlite3": "^5.0.0",
     "telegraf": "^3.38.0",
     "telegraf-inline-menu": "^5.0.0",
-    "typeorm": "^0.2.25"
+    "typeorm": "^0.2.25",
+    "typescript": "^3.9.3"
   }
 }

@@ -3,3 +3,4 @@
 .env
 dist/**/*
 .idea
+docker-compose.yml

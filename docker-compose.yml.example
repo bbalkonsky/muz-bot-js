@@ -1,0 +1,33 @@
+version: "3"
+networks:
+  traefic-proxy:
+    external: true
+
+services:
+  muz-bot-js:
+    networks:
+      - proxy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 3000
+    volume:
+      - db-data:/db-data
+    labels:
+      traefik.enable: "true"
+      # Allow 80 with domain
+      traefik.http.routers.muz-bot-js.entrypoints: 'web'
+      traefik.http.routers.muz-bot-js.rule: 'Host(`https://domain`)'
+      # Redirect to 443
+      traefik.http.middlewares.traefik-redirectscheme.redirectscheme.scheme: 'https'
+      traefik.http.routers.muz-bot-js.middlewares: 'traefik-redirectscheme'
+      # Allow 443 with domain
+      traefik.http.routers.muz-bot-js-ssl.entrypoints: 'websecure'
+      traefik.http.routers.muz-bot-js-ssl.tls.certresolver: 'myresolver'
+      traefik.http.routers.muz-bot-js-ssl.rule: 'Host(`https://domain`)'
+
+volumes:
+  db-data:
