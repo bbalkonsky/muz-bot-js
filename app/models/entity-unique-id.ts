@@ -1,19 +1,4 @@
-export default interface Song {
-    entityUniqueId: string,
-    userCountry: string,
-    pageUrl: string,
-    linksByPlatform: {[key: string]: ILinksByPlatform},
-    entitiesByUniqueId: {[key: string]: IEntityUniqueId},
-}
-
-interface ILinksByPlatform {
-    entityUniqueId?: string,
-    url: string,
-    nativeAppUriMobile?: string,
-    nativeAppUriDesktop?: string,
-}
-
-interface IEntityUniqueId {
+export interface EntityUniqueId {
     id: string,
     type: 'song' | 'album',
     title?: string,

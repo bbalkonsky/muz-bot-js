@@ -3,31 +3,23 @@ import {TelegrafContext} from "telegraf/typings/context";
 require('dotenv').config();
 import fs from 'fs';
 import {Telegraf, Telegram} from 'telegraf';
-import {platforms} from "./info";
 import {createConnection} from "typeorm";
-import {Chat} from "./database/entities/Chat";
-import {ChatState} from "./database/entities/ChatState";
-import {ChatPlatforms} from "./database/entities/ChatPlatforms";
-import {Messages} from "./database/entities/Messages";
+import {Chat} from "./app/database/entities/Chat";
+import {ChatState} from "./app/database/entities/ChatState";
+import {ChatPlatforms} from "./app/database/entities/ChatPlatforms";
+import {Messages} from "./app/database/entities/Messages";
 import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
-import contactsScene from "./menu/sendScene";
-import {
-    getBack, getClose,
-    getHelp,
-    getHelpOption,
-    getMainMenu, getPlatformOption,
-    getPlatforms,
-    getDonations, getSettings, getStateOption, messageHandler, startMdlwr,
-    startContactsScene
-} from "./menu/middlewares";
+import SendingScene from "./app/menu/sendScene";
+import Middlewares from "./app/menu/middlewares";
+import SongHandler from "./app/helpers/scripts";
 
 export const bot = new Telegraf(
     process.env.TELEGRAM_TOKEN,
     {
         username: process.env.BOT_USERNAME,
         // @ts-ignore
-        channelMode: true
+        channelMode: true,
     }
 );
 
@@ -39,40 +31,45 @@ const connection = createConnection({
 });
 
 // Create scene manager
-const stage = new Stage([contactsScene])
+const sendingScene = new SendingScene();
+const stage = new Stage([sendingScene.getScene()])
+
+const handler = new SongHandler();
 
 bot.use(session());
 session.messageToDelete = {};
 
 bot.use(stage.middleware());
 
-bot.command('start', startMdlwr);
-bot.command('menu', getMainMenu);
+bot.command('start', Middlewares.startMdlwr);
+bot.command('menu', Middlewares.getMainMenu);
 
-bot.action('contacts', startContactsScene);
-bot.action('platforms', getPlatforms);
-bot.action('settings', getSettings);
-bot.action('donate', getDonations);
-bot.action('help', getHelp);
-bot.action(/helpOption:[0-9]/, getHelpOption);
-bot.action(/platform:[\w]+/, getPlatformOption);
-bot.action(/state:[\w]+/, getStateOption);
-bot.action('back', getBack);
-bot.action('close', getClose);
+bot.action('contacts', Middlewares.startContactsScene);
+bot.action('platforms', Middlewares.getPlatforms);
+bot.action('settings', Middlewares.getSettings);
+bot.action('donate', Middlewares.getDonations);
+bot.action('help', Middlewares.getHelp);
+bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
+bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
+bot.action(/state:[\w]+/, Middlewares.getStateOption);
+bot.action('back', Middlewares.getBack);
+bot.action('close', Middlewares.getClose);
 
 bot.catch((error: any) => {
     console.error(error);
 });
 
-bot.on(['message', 'channel_post'], messageHandler);
+bot.on(['message', 'channel_post'], ctx => handler.handleMessage(ctx));
 
-process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
+startProdMode(bot)
+// startDevMode(bot)
+// process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
 
-function startDevMode(bot: Telegraf<TelegrafContext>) {
-    bot.startPolling();
+function startDevMode(tgbot: Telegraf<TelegrafContext>) {
+    tgbot.startPolling();
 }
 
-async function startProdMode(bot: Telegraf<TelegrafContext>) {
+async function startProdMode(tgbot: Telegraf<TelegrafContext>) {
     console.log('Starting a bot in production mode');
     const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
 
@@ -83,14 +80,14 @@ async function startProdMode(bot: Telegraf<TelegrafContext>) {
         cert: fs.readFileSync(process.env.PATH_TO_CERT)
     };
 
-    await bot.telegram.setWebhook(
+    await tgbot.telegram.setWebhook(
         `${process.env.WEBHOOK_URL}:${process.env.WEBHOOK_PORT}/${process.env.TELEGRAM_TOKEN}`,
         {
             source: 'cert.pem'
         }
     );
 
-    await bot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
+    await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
 
     const webhookStatus = await telegram.getWebhookInfo();
     console.log('Webhook status', webhookStatus);
