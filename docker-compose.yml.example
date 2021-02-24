@@ -12,6 +12,7 @@ services:
       dockerfile: Dockerfile
     env_file: 
       - .env
+    restart: unless-stopped
     ports:
       - 3000
     volume:
