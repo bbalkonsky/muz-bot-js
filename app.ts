@@ -2,7 +2,7 @@ import {TelegrafContext} from "telegraf/typings/context";
 
 require('dotenv').config();
 import fs from 'fs';
-import {Telegraf, Telegram} from 'telegraf';
+import {Markup, Telegraf, Telegram} from 'telegraf';
 import {createConnection} from "typeorm";
 import {Chat} from "./app/database/entities/Chat";
 import {ChatState} from "./app/database/entities/ChatState";
@@ -55,14 +55,15 @@ bot.action(/state:[\w]+/, Middlewares.getStateOption);
 bot.action('back', Middlewares.getBack);
 bot.action('close', Middlewares.getClose);
 
-bot.catch((error: any) => {
-    console.error(error);
+bot.catch((err: any) => {
+    console.error(err);
+    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло сильно не по плану...').then();
 });
 
 bot.on(['message', 'channel_post'], ctx => handler.handleMessage(ctx));
 
-startProdMode(bot)
-// startDevMode(bot)
+// startProdMode(bot)
+startDevMode(bot)
 // process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
 
 function startDevMode(tgbot: Telegraf<TelegrafContext>) {
