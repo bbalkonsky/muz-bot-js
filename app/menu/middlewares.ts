@@ -107,4 +107,8 @@ export default class Middlewares {
             return true;
         }
     }
+
+    static async sendBotVersion(ctx: TelegrafContext, version: string): Promise<any> {
+        return ctx.reply(version);
+    }
 }

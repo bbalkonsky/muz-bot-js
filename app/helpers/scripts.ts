@@ -32,7 +32,13 @@ export default class SongHandler {
                 const signature = SongHandler.sentBy(ctx.from, ctx.chat.type);
                 const replyText = SongHandler.prepareReplyText(songName, songThumb, chatAnnotations, signature)
 
-                await ctx.deleteMessage();
+                await ctx.deleteMessage()
+                    .then()
+                    .catch(() => {
+                        ctx.reply('Я, кстати, могу удалять оригинальное сообщение, ' +
+                            'но для этого мне нужно дать права на удаление чужих сообщений ' +
+                            '(это в настройках администраторов)')
+                    });
                 await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
             }
         }

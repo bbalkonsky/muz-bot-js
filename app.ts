@@ -1,18 +1,20 @@
-import {TelegrafContext} from "telegraf/typings/context";
+import {TelegrafContext} from 'telegraf/typings/context';
 
-require('dotenv').config();
+import dotenv from 'dotenv';
 import fs from 'fs';
 import {Markup, Telegraf, Telegram} from 'telegraf';
-import {createConnection} from "typeorm";
-import {Chat} from "./app/database/entities/Chat";
-import {ChatState} from "./app/database/entities/ChatState";
-import {ChatPlatforms} from "./app/database/entities/ChatPlatforms";
-import {Messages} from "./app/database/entities/Messages";
+import {createConnection} from 'typeorm';
+import {Chat} from './app/database/entities/Chat';
+import {ChatState} from './app/database/entities/ChatState';
+import {ChatPlatforms} from './app/database/entities/ChatPlatforms';
+import {Messages} from './app/database/entities/Messages';
 import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
-import SendingScene from "./app/menu/sendScene";
-import Middlewares from "./app/menu/middlewares";
-import SongHandler from "./app/helpers/scripts";
+import SendingScene from './app/menu/sendScene';
+import Middlewares from './app/menu/middlewares';
+import SongHandler from './app/helpers/scripts';
+import { version } from './package.json';
+dotenv.config()
 
 export const bot = new Telegraf(
     process.env.TELEGRAM_TOKEN,
@@ -24,7 +26,7 @@ export const bot = new Telegraf(
 );
 
 const connection = createConnection({
-    type: "sqlite",
+    type: 'sqlite',
     database: process.env.DBASE_PATH,
     entities: [Chat, ChatState, ChatPlatforms, Messages],
     synchronize: true
@@ -43,6 +45,7 @@ bot.use(stage.middleware());
 
 bot.command('start', Middlewares.startMdlwr);
 bot.command('menu', Middlewares.getMainMenu);
+bot.command('version', ctx => Middlewares.sendBotVersion(ctx, version));
 
 bot.action('contacts', Middlewares.startContactsScene);
 bot.action('platforms', Middlewares.getPlatforms);
@@ -54,6 +57,7 @@ bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
 bot.action(/state:[\w]+/, Middlewares.getStateOption);
 bot.action('back', Middlewares.getBack);
 bot.action('close', Middlewares.getClose);
+
 
 bot.catch((err: any) => {
     console.error(err);
