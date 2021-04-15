@@ -6,7 +6,7 @@ networks:
 services:
   muz-bot-js:
     networks:
-      - proxy
+      - traefic-proxy
     build:
       context: .
       dockerfile: Dockerfile
