@@ -35,7 +35,7 @@ export default class SongHandler {
             const chatId = ctx.chat.id;
 
             await Middlewares.getOrCreateChat(ctx);
-            if (!process.env.OWNER_ID) {
+            if (ctx.chat.id.toString() !== process.env.OWNER_ID) {
                 globalObject.loger.info('message', JSON.stringify({
                     chatId,
                     chatType: ctx.chat.type,
