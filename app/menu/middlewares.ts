@@ -6,6 +6,7 @@ import Info from "../helpers/info";
 import {getRepository} from "typeorm";
 import {Chat} from "../database/entities/Chat";
 import {TelegrafContext} from "telegraf/typings/context";
+import { version } from '../../package.json'
 
 
 export default class Middlewares {
@@ -21,7 +22,7 @@ export default class Middlewares {
     static async getMainMenu(ctx: TelegrafContext) {
         await Middlewares.getOrCreateChat(ctx);
         await ctx.deleteMessage();
-        const newButtons = Buttons.getMainMenuButtons(!!ctx.message, ctx.from?.language_code);
+        const newButtons = Buttons.getMainMenuButtons(ctx);
         return ctx.reply('Привет! Чем могу помочь?', Markup.inlineKeyboard(newButtons).extra());
     }
 
@@ -55,9 +56,7 @@ export default class Middlewares {
             .then()
             .catch(err => {
                 if (err.response?.description?.includes('Bad Request: message is not modified')) {
-                    /**
-                     * Пользователь может решить потыкать в одну кнопку много раз
-                     */
+                     // Пользователь может решить потыкать в одну кнопку много раз
                     const helpButtons = Buttons.getHelpButtons(ctx.from?.language_code);
                     ctx.editMessageText('Ну и зачем опять нажал?', {reply_markup: Markup.inlineKeyboard(helpButtons)});
                 } else {
@@ -80,16 +79,16 @@ export default class Middlewares {
         return ctx.editMessageReplyMarkup(Markup.inlineKeyboard(newButtons));
     }
 
-    static async startContactsScene(ctx: SceneContextMessageUpdate) {
-        return ctx.scene.enter('contactsScene');
+    static async startContactsScene(ctx: SceneContextMessageUpdate): Promise<any> {
+        return ctx.scene.enter('feedbackScene');
     }
 
-    static async getBack(ctx) {
-        const newButtons = Buttons.getMainMenuButtons(ctx.chat.type === 'private', ctx.from?.language_code);
+    static async getBack(ctx): Promise<any> {
+        const newButtons = Buttons.getMainMenuButtons(ctx);
         return ctx.editMessageText('Привет! Чем могу помочь?', {reply_markup: Markup.inlineKeyboard(newButtons)});
     }
 
-    static async getClose(ctx: TelegrafContext) {
+    static async getClose(ctx: TelegrafContext): Promise<any> {
         return ctx.deleteMessage()
             .then()
             .catch(() => {
@@ -108,7 +107,13 @@ export default class Middlewares {
         }
     }
 
-    static async sendBotVersion(ctx: TelegrafContext, version: string): Promise<any> {
+    static async sendBotVersion(ctx: TelegrafContext): Promise<any> {
         return ctx.reply(version);
+    }
+
+    static async startNotifyScene(ctx: SceneContextMessageUpdate): Promise<any> {
+        return ctx.chat.id.toString() === process.env.OWNER_ID
+            ? ctx.scene.enter('notifyScene')
+            : null;
     }
 }

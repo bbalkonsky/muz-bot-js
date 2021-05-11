@@ -3,12 +3,14 @@ import {ChatPlatforms} from "../database/entities/ChatPlatforms";
 import {CallbackButton, UrlButton} from "telegraf/typings/markup";
 import {ChatState} from "../database/entities/ChatState";
 import Info from "../helpers/info";
+import {TelegrafContext} from "telegraf/typings/context";
 
 export default class Buttons {
-    static getPlatformsButtons(chatPlatforms: ChatPlatforms, cols: number = 3): CallbackButton[][] {
+    static getPlatformsButtons(chatPlatforms: ChatPlatforms): CallbackButton[][] {
         const buttons = [];
         let tempArray = [];
         let counter = 1;
+        const cols = 3;
         for (const platform in chatPlatforms) {
             if (!chatPlatforms.hasOwnProperty(platform)) continue;
             const newButton = Markup.callbackButton(
@@ -36,16 +38,26 @@ export default class Buttons {
         return Markup.callbackButton(`⏹ ${language === 'ru' ? 'Закрыть' : 'Close'}`, 'close');
     }
 
-    static getMainMenuButtons(isPrivate: boolean, language: string = 'en'): CallbackButton[][] {
+    static getMainMenuButtons(ctx: TelegrafContext): CallbackButton[][] {
         const newKeyboard = [];
+        const language = ctx.from?.language_code ?? 'en';
+        const isPrivate = ctx.chat.type === 'private';
+
         newKeyboard.push([
             Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings'),
             Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')
         ]);
         newKeyboard.push([
-            Markup.callbackButton(`💰 ${language === 'ru' ? 'Поддержать' : 'Donate'}`, 'donate'),
-            Markup.callbackButton(`✏ ${language === 'ru' ? 'Обратная связь' : 'Contacts'}`, 'contacts')
+            // Markup.callbackButton(`💰 ${language === 'ru' ? 'Поддержать' : 'Donate'}`, 'donate'),
+            Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts'),
         ]);
+
+        if (ctx.chat.id.toString() === process.env.OWNER_ID) {
+            newKeyboard.push([
+                Markup.callbackButton('🤔 Проорать', 'notify')
+            ]);
+        }
+
         newKeyboard.push([
             Buttons.getCloseButton(language)
         ]);
@@ -56,7 +68,6 @@ export default class Buttons {
         return [
             [Markup.callbackButton(`🎧 ${language === 'ru' ? 'Платформы' : 'Platforms'}`, 'platforms')],
             [Markup.callbackButton(`${state.annotations ? '✅' : '❌'}  ${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'state:annotations')],
-            // [Markup.callbackButton(`${state.rating ? '✅' : '❌'}  ${language === 'ru' ? 'Рейтинг' : 'Rating'}`, 'state:rating')],
             [Buttons.getBackButton(language), Buttons.getCloseButton(language)]
         ];
     }
@@ -83,9 +94,3 @@ export default class Buttons {
         return [Markup.callbackButton(`❌ ${language === 'ru' ? 'Отмена' : 'Cancel'}`, 'cancel')];
     }
 }
-// static getRatingButtons(): CallbackButton[] {
-//     return [
-//         Markup.callbackButton(`👍`, 'like'),
-//         Markup.callbackButton(`👎`, 'dislike')
-//     ];
-// }

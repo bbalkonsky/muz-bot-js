@@ -10,33 +10,42 @@ import {ChatPlatforms} from './app/database/entities/ChatPlatforms';
 import {Messages} from './app/database/entities/Messages';
 import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
-import SendingScene from './app/menu/sendScene';
+import FeedbackScene from './app/menu/feedbackScene';
 import Middlewares from './app/menu/middlewares';
 import SongHandler from './app/helpers/scripts';
-import { version } from './package.json';
+
 dotenv.config()
+import { Logger } from "tslog";
+import NotifyScene from "./app/menu/notifyScene";
+import {TOptions} from "telegraf/typings/telegraf";
+const globalObject: any = global;
+
+
+globalObject.loger = new Logger();
 
 export const bot = new Telegraf(
     process.env.TELEGRAM_TOKEN,
     {
         username: process.env.BOT_USERNAME,
-        // @ts-ignore
         channelMode: true,
-    }
+    } as TOptions
 );
 
-const connection = createConnection({
+createConnection({
     type: 'sqlite',
     database: process.env.DBASE_PATH,
-    entities: [Chat, ChatState, ChatPlatforms, Messages],
+    entities: [Chat, ChatState, ChatPlatforms, Messages], // TODO remove messages
     synchronize: true
-});
+})
+    .then()
+    .catch(() => {
+        globalObject.loger.fatal('Cannot establish connection with database');
+    });
 
 // Create scene manager
-const sendingScene = new SendingScene();
-const stage = new Stage([sendingScene.getScene()])
-
-const handler = new SongHandler();
+const feedbackScene = new FeedbackScene();
+const notifyScene = new NotifyScene();
+const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
 
 bot.use(session());
 session.messageToDelete = {};
@@ -45,7 +54,8 @@ bot.use(stage.middleware());
 
 bot.command('start', Middlewares.startMdlwr);
 bot.command('menu', Middlewares.getMainMenu);
-bot.command('version', ctx => Middlewares.sendBotVersion(ctx, version));
+
+bot.command('version', Middlewares.sendBotVersion);
 
 bot.action('contacts', Middlewares.startContactsScene);
 bot.action('platforms', Middlewares.getPlatforms);
@@ -58,24 +68,27 @@ bot.action(/state:[\w]+/, Middlewares.getStateOption);
 bot.action('back', Middlewares.getBack);
 bot.action('close', Middlewares.getClose);
 
+bot.action('notify', Middlewares.startNotifyScene);
+
 
 bot.catch((err: any) => {
-    console.error(err);
-    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло сильно не по плану...').then();
+    globalObject.loger.fatal(err);
+    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не по плану...').then();
 });
 
-bot.on(['message', 'channel_post'], ctx => handler.handleMessage(ctx));
+bot.on(['message', 'channel_post'], ctx => SongHandler.handleMessage(ctx));
 
 // startProdMode(bot)
 startDevMode(bot)
 // process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
 
 function startDevMode(tgbot: Telegraf<TelegrafContext>) {
+    globalObject.loger.debug('Starting a bot in develop mode');
     tgbot.startPolling();
 }
 
 async function startProdMode(tgbot: Telegraf<TelegrafContext>) {
-    console.log('Starting a bot in production mode');
+    globalObject.loger.debug('Starting a bot in production mode');
     const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
 
     await telegram.deleteWebhook();
@@ -95,5 +108,5 @@ async function startProdMode(tgbot: Telegraf<TelegrafContext>) {
     await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
 
     const webhookStatus = await telegram.getWebhookInfo();
-    console.log('Webhook status', webhookStatus);
+    globalObject.loger.debug('Webhook status', webhookStatus);
 }

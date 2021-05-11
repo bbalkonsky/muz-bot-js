@@ -8,29 +8,55 @@ import DataBaseController from "../database/controllers";
 import Middlewares from "../menu/middlewares";
 import {Song} from "../models/song";
 import {TelegrafContext} from "telegraf/typings/context";
+import {bot} from "../../app";
+const globalObject: any = global;
 
 export default class SongHandler {
-    public async handleMessage(ctx: TelegrafContext) {
-        const messageText = ctx.message?.text || ctx.channelPost?.text || '';
-        const chatInput = SongHandler.getUrlAndDescription(messageText);
+    public static async handleMessage(ctx: TelegrafContext) {
+        const message = ctx.updateType === 'message'
+            ? ctx.message
+            : ctx.updateType === 'channel_post'
+                ? ctx.channelPost
+                : null;
+        if (!message?.entities) return;
+        const parsedMessage = SongHandler.getParsedMessage(message);
 
-        if (chatInput) {
+        if (parsedMessage) {
+
+            let loadingMessageId: number;
+            ctx.replyWithDocument({source: './loader.gif'})
+                .then(mes => {
+                    loadingMessageId = mes.message_id;
+                })
+                .catch(err => {
+                    globalObject.loger.error('Не смог отправить гифку')
+                });
+
+            const chatId = ctx.chat.id;
+
             await Middlewares.getOrCreateChat(ctx);
-            await DataBaseController.addMessageToLog(ctx.chat.id, messageText, 'private');
+            if (!process.env.OWNER_ID) {
+                globalObject.loger.info('message', JSON.stringify({
+                    chatId,
+                    chatType: ctx.chat.type,
+                    platform: parsedMessage.platform,
+                    // TODO проверять язык
+                }));
+            }
 
-            const chatPlatforms = await DataBaseController.getChatPlatforms(ctx.chat.id);
-            const songInfo = await SongHandler.getSongInfoOrReplyError(chatInput.url, ctx);
+            const chatPlatforms = await DataBaseController.getChatPlatforms(chatId);
+            const songInfo = await SongHandler.getSongInfoOrReplyError(parsedMessage.url, ctx);
 
             if (songInfo) {
                 const songName = SongHandler.getSongName(songInfo);
                 const songThumb = SongHandler.getSongThumb(songInfo);
-                const buttons = this.getSongLinksButtons(songInfo, chatPlatforms, songName);
+                const buttons = SongHandler.getSongLinksButtons(songInfo, chatPlatforms, songName);
 
-                const chatState = await DataBaseController.getChatState(ctx.chat.id);
-                const chatAnnotations = chatState.annotations ? chatInput.description : '';
+                const chatState = await DataBaseController.getChatState(chatId);
+                const chatAnnotations = chatState.annotations ? parsedMessage.description : null;
 
                 const signature = SongHandler.sentBy(ctx.from, ctx.chat.type);
-                const replyText = SongHandler.prepareReplyText(songName, songThumb, chatAnnotations, signature)
+                const replyText = SongHandler.prepareReplyText(songName, songThumb, signature, chatAnnotations)
 
                 await ctx.deleteMessage()
                     .then()
@@ -39,29 +65,35 @@ export default class SongHandler {
                             'но для этого мне нужно дать права на удаление чужих сообщений ' +
                             '(это в настройках администраторов)')
                     });
+                if (loadingMessageId) {
+                    await bot.telegram.deleteMessage(ctx.chat.id, loadingMessageId);
+                }
                 await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
             }
         }
     }
 
-    private static getUrlAndDescription(messageText: string): false | {description: string, url: string} {
-        for (const platform in Info.platforms) {
-            if (Info.platforms.hasOwnProperty(platform)) {
-                const re = new RegExp(
-                    `(?:https\\:\/\/|http\\:\/\/)${Info.platforms[platform].link}[\\S]+`, 'gmi'
-                );
-                const urlPosition = messageText.search(re);
-                if (urlPosition >= 0) {
-                    const url = messageText.match(re)[0];
-                    const description = urlPosition ? messageText.slice(0, urlPosition).trim() : '';
+    private static getParsedMessage(message: any): {
+        url: string,
+        description: string,
+        platform: string
+    } {
+        const firstEntity = message.entities[0];
+        if (firstEntity.type === 'url') {
+            const link = message.text.slice(firstEntity.offset, firstEntity.offset + firstEntity.length);
+            for (const [key, value] of Object.entries(Info.platforms)) {
+                if (value.link.some(l => link.includes(l))) {
+                    const prefix = message.text.slice(0, firstEntity.offset).trim() ?? '';
+                    const suffix = message.text.slice(firstEntity.offset + firstEntity.length).trim() ?? '';
                     return {
-                        description,
-                        url
+                        url: link,
+                        description: `${prefix}${prefix && suffix ? '\n' : ''}${suffix}`,
+                        platform: key,
                     };
                 }
             }
+            return null;
         }
-        return false;
     }
 
     private static getSongInfoOrReplyError(url: string, ctx: TelegrafContext): any {
@@ -74,37 +106,38 @@ export default class SongHandler {
             .then(res => res.data)
             .catch(err => {
                 if (err.response.status) {
-                    ctx.reply('Ничего не нашел, сорян');
+                    ctx.reply('Ничего не нашел 😐');
                 } else {
                     ctx.reply('Что-то пошло не так');
                 }
             });
     }
 
+    // TODO переписать когда обновится api
     private static getSongName(response: Song): {title: string, artist: string} {
-        const keys = Object.keys(response.entitiesByUniqueId);
-        const firstEntity = response.entitiesByUniqueId[keys[0]];
-        return {title: firstEntity.title, artist: firstEntity.artistName};
+        const entity = response.entitiesByUniqueId[response.entityUniqueId];
+        return {title: entity.title, artist: entity.artistName};
     }
 
+    // TODO переписать когда обновится api
     private static getSongThumb(response: Song): string {
-        const keys = Object.keys(response.entitiesByUniqueId);
-        return response.entitiesByUniqueId[keys[0]].thumbnailUrl;
+        return response.entitiesByUniqueId[response.entityUniqueId].thumbnailUrl;
     }
 
-    private getSongLinksButtons(
+    // TODO очень много входных параметров
+    private static getSongLinksButtons(
         response: Song,
         chatPlatforms: ChatPlatforms,
-        songName: {title: string, artist: string},
-        cols:number = 3
+        songName: {title: string, artist: string}
     ): UrlButton[][] {
         const buttons = [];
         let tempArray = [];
         let counter = 1;
+        const colsNumber = 3;
         const linksByPlatform = response.linksByPlatform;
         if (chatPlatforms.vk) {
             const songFullName = `${songName.artist} - ${songName.title}`;
-            linksByPlatform.vk = {url: SongHandler.searchVk(songFullName)};
+            linksByPlatform.vk = {url: SongHandler.getVkLink(songFullName)};
         }
         const keys = Object.keys(response.linksByPlatform);
         keys.forEach(key => {
@@ -114,7 +147,8 @@ export default class SongHandler {
                     `${response.linksByPlatform[key].url}`
                 );
                 tempArray.push(newButton);
-                if (counter < cols) {
+                // TODO попробовать избавиться от tempArray напихав сначала полный список, а потом уже разбить его на строки
+                if (counter < colsNumber) {
                     counter++;
                 } else {
                     buttons.push(tempArray);
@@ -127,13 +161,17 @@ export default class SongHandler {
         return buttons;
     }
 
-    private static searchVk(songName: string): string {
-        const songNameWithoutSymbols = songName
-            .replace(/\s/g, '%20')
-            .replace(/’/g, '%27')
+    // TODO надо бы отрефакторить
+    private static getVkLink(songName: string): string {
+        const songNameWithoutSymbols =
+            encodeURIComponent(songName)
+            .replace(/'/g, '%27')
             .replace(/\(/g, '%28')
             .replace(/\)/g, '%29')
-            .replace(/&/g, '%26');
+            .replace(/_/g, '%5F')
+            .replace(/!/g, '%5F')
+            .replace(/~/g, '%7E')
+            .replace(/\*/g, '%2A');
         return `https://vk.com/search?c%5Bper_page%5D=200&c%5Bq%5D=${songNameWithoutSymbols}&c%5Bsection%5D=audio`;
     }
 
@@ -155,8 +193,9 @@ export default class SongHandler {
         }
     }
 
-    private static prepareReplyText(songName, songThumb, chatAnnotations, signature) {
-        const annotations = chatAnnotations.length ? `${chatAnnotations}\n—\n` : '';
-        return `${annotations}*${songName.title}*\n${songName.artist}[\u200B](${songThumb})${signature}`
+    // TODO очень много входных параметров
+    private static prepareReplyText(songName, songThumb, signature, chatAnnotations?: string) {
+        const annotations = chatAnnotations?.length ? `\n—\n${chatAnnotations}` : '';
+        return `*${songName.title}*\n${songName.artist}[\u200B](${songThumb})${annotations}${signature}`
     }
 }

@@ -1,8 +1,7 @@
-import {getRepository} from "typeorm";
+import {Equal, getRepository, Not} from "typeorm";
 import {Chat} from "./entities/Chat";
 import {ChatState} from "./entities/ChatState";
 import {ChatPlatforms} from "./entities/ChatPlatforms";
-import {Messages} from "./entities/Messages";
 
 export default class DataBaseController {
     static async createChat(chatId, chatType, regDate): Promise<void> {
@@ -46,16 +45,10 @@ export default class DataBaseController {
         return chat.state;
     }
 
-    static async addMessageToLog(chatId: number, userMessage, messageType: "private" | "reply"): Promise<void> {
-        const chatRepository = await getRepository(Chat);
-        const chat = await chatRepository.findOne(chatId);
-
-        const messageRepository = await getRepository(Messages);
-        const message = new Messages();
-        message.chat = chat;
-        message.message = JSON.stringify(userMessage);
-        message.messageType = messageType;
-
-        messageRepository.save(message);
+    static async getAllUsers(): Promise<any> {
+        return await getRepository(Chat).find({
+            select: ['id'],
+            where: {chatType: 'private', id: Not(Equal(process.env.OWNER_ID))}
+        });
     }
 }

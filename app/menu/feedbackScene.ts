@@ -4,19 +4,17 @@ import {SceneContextMessageUpdate} from "telegraf/typings/stage";
 import Buttons from "./buttons";
 import {Markup} from "telegraf";
 import {bot} from "../../app";
-import DataBaseController from "../database/controllers";
+const globalObject: any = global;
 
-// const {leave} = Stage;
 
-export default class SendingScene {
-    contactsScene: Scene = new Scene('contactsScene');
+export default class FeedbackScene {
 
-    constructor() {
-        this.contactsScene = new Scene('contactsScene');
-    }
+    constructor(
+        private readonly scene: Scene = new Scene('feedbackScene')
+    ) {}
 
     public getScene() {
-        this.contactsScene.enter(async (ctx: SceneContextMessageUpdate) => {
+        this.scene.enter(async (ctx: SceneContextMessageUpdate) => {
             const newButtons = Buttons.getLeaveSceneButton(ctx.from?.language_code);
             await ctx.editMessageText('Следующее твое сообщение будет отправлено моему создателю ' +
                 '(только текст, без стикеров, видео и всего такого)\n' +
@@ -26,13 +24,13 @@ export default class SendingScene {
             session.messageToDelete[ctx.chat.id] = ctx.update.callback_query.message.message_id;
         })
 
-        // this.contactsScene.leave(async (ctx: SceneContextMessageUpdate) => {
+        // this.feedbackScene.leave(async (ctx: SceneContextMessageUpdate) => {
         // })
 
-        this.contactsScene.action(/cancel/, SendingScene.getCancel);
-        this.contactsScene.hears(/[\w]*/, SendingScene.sendMessageToCreator);
+        this.scene.action(/cancel/, FeedbackScene.getCancel);
+        this.scene.hears(/[\w]*/, FeedbackScene.sendMessageToCreator);
 
-        return this.contactsScene;
+        return this.scene;
     }
 
     private static async getCancel(ctx: SceneContextMessageUpdate): Promise<any> {
@@ -41,10 +39,7 @@ export default class SendingScene {
             .catch(() => {
                 ctx.reply('Что-то пошло не по плану')
             })
-            // .finally(() => {
-            //     return ctx.scene.leave();
-            // });
-        const newButtons = Buttons.getMainMenuButtons(false, ctx.from?.language_code);
+        const newButtons = Buttons.getMainMenuButtons(ctx);
         await ctx.reply('Передумаешь - пиши!', Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
@@ -54,10 +49,23 @@ export default class SendingScene {
             await bot.telegram.deleteMessage(ctx.chat.id, session.messageToDelete[ctx.chat.id]);
             delete session.messageToDelete[ctx.chat.id];
         }
+
+
+        // await bot.telegram.getChat(ctx.chat.id)
+        //     .then(chat => console.log(chat))
+
+
         await bot.telegram.forwardMessage(process.env.OWNER_ID, ctx.chat.id, ctx.message.message_id);
-        await DataBaseController.addMessageToLog(ctx.chat.id, ctx.message, 'reply');
-        await ctx.deleteMessage();
-        const newButtons = Buttons.getMainMenuButtons(false, ctx.from?.language_code);
+        globalObject.loger.info('feedback', JSON.stringify({
+            chatId: ctx.chat.id,
+            message: ctx.message.text
+        }));
+        await ctx.deleteMessage()
+            .then()
+            .catch(() => {
+                ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
+            });
+        const newButtons = Buttons.getMainMenuButtons(ctx);
         await ctx.reply('Отлично! Я все передам!', Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
