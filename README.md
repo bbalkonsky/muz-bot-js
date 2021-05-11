@@ -1,5 +1,5 @@
 # Telegram MuzShareBot
-### Unofficial telegram bot for [Odesli](https://odesli.co) service
+### Unofficial telegram bot for [Odesli](https://odesli.co) (former SongLink) service
 
 ## Why
 
