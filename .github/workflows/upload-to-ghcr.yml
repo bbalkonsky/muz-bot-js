@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: 
       - push-to-ghcr
+    env:
+      DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
     steps:
       - name: Hook to server
-        run: curl https://${{ secrets.DEPLOY_URL }}/muz-js-bot
+        run: curl https://${DEPLOY_URL}/muz-js-bot
