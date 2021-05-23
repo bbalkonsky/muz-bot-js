@@ -24,8 +24,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghrc.io/bbalkonsky/muz-bot-js:${{ github.sha }}
-            ghrc.io/bbalkonsky/muz-bot-js:latest
+            ghcr.io/bbalkonsky/muz-bot-js:${{ github.sha }}
+            ghcr.io/bbalkonsky/muz-bot-js:latest
 
   deploy:
     runs-on: ubuntu-latest
