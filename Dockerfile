@@ -3,8 +3,7 @@ WORKDIR /app
 ADD . /app
 
 RUN npm i \ 
-    && npm prune --production \
-    && /usr/local/bin/node-prune
+    && npm prune --production
 
 
 FROM node:14.17-alpine3.12
