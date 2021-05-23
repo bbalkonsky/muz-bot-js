@@ -1,3 +1,4 @@
+[![Master CI](https://github.com/bbalkonsky/muz-bot-js/actions/workflows/master.yml/badge.svg)](https://github.com/bbalkonsky/muz-bot-js/actions/workflows/master.yml)
 # Telegram MuzShareBot
 ### Unofficial telegram bot for [Odesli](https://odesli.co) (former SongLink) service
 
