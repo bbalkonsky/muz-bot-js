@@ -1,10 +1,10 @@
 ---
-name: ci
+name: Master CI
 
 on:
   push:
     branches:
-      - 'ci'
+      - 'master'
 
 jobs:
   push-to-ghcr:
