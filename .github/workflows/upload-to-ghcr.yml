@@ -32,4 +32,4 @@ jobs:
       DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
     steps:
       - name: Hook to server
-        run: curl https://${DEPLOY_URL}/muz-js-bot
+        run: curl "https://$DEPLOY_URL/muz-js-bot"
