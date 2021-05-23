@@ -73,7 +73,7 @@ bot.action('notify', Middlewares.startNotifyScene);
 
 bot.catch((err: any) => {
     globalObject.loger.fatal(err);
-    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не по плану...').then();
+    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не так').then();
 });
 
 bot.on(['message', 'channel_post'], ctx => SongHandler.handleMessage(ctx));
