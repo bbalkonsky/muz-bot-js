@@ -12,17 +12,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
       - name: Build and push to GHCR
         uses: docker/build-push-action@v2
         with:
-          registry: ghcr.io
-          username: bbalkonsky
-          password: ${{ secrets.GH_PAT }}
-          repository: bbalkonsky/muz-bot-js
-          dockerfile: Dockerfile
+          context: .
+          push: true
           tags: |
-            bbalkonsky/muz-bot-js:${{ github.sha }}
-            bbalkonsky/muz-bot-js:latest
+            ghrc.io/bbalkonsky/muz-bot-js:${{ github.sha }}
+            ghrc.io/bbalkonsky/muz-bot-js:latest
 
   deploy:
     runs-on: ubuntu-latest
