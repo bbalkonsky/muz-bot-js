@@ -1,3 +1,4 @@
+[![Master CI](https://github.com/bbalkonsky/muz-bot-js/actions/workflows/master.yml/badge.svg)](https://github.com/bbalkonsky/muz-bot-js/actions/workflows/master.yml)
 # Telegram MuzShareBot
 ### Unofficial telegram bot for [Odesli](https://odesli.co) (former SongLink) service
 
@@ -15,7 +16,7 @@ To start using Bot, simply add it in [Telegram](http://t.me/muzsharebot) and pre
 * Docker
 * Traefik
 
-### Install
+### Manual install
 Clone repo:
 ```
 cd ~
@@ -36,3 +37,23 @@ Run docker-compose with external traefik proxy:
 ```
 docker-compose up -d --build
 ```
+
+### Docker-compose sample with GHCR image
+```
+version: "3"
+
+services:
+  muz-bot-js:
+    image: ghcr.io/bbalkonsky/muz-bot-js:latest
+    env_file: 
+      - .env
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volume:
+      - db-data:/db-data
+
+volumes:
+  db-data:
+```
+> You need to have .env file with all credentials.
