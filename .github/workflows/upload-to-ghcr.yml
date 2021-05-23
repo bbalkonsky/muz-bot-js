@@ -33,8 +33,8 @@ jobs:
           context: .
           push: true
           tags: 
-            - "${GITHUB_REPOSITORY}:${GITHUB_SHA}"
-            - "${GITHUB_REPOSITORY}:latest"
+            - '${GITHUB_REPOSITORY}:${GITHUB_SHA}'
+            - '${GITHUB_REPOSITORY}:latest'
 
   deploy:
     runs-on: ubuntu-latest
