@@ -1,6 +1,6 @@
 {
-  "name": "muz",
-  "version": "2.3.1",
+  "name": "muz-share-bot",
+  "version": "2.3.2",
   "description": "",
   "main": "index.js",
   "scripts": {

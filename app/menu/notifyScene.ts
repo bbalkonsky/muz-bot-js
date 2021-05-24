@@ -14,7 +14,7 @@ export default class NotifyScene {
         private readonly scene: Scene = new Scene('notifyScene')
     ) {}
 
-    public getScene() {
+    public getScene(): Scene {
         this.scene.enter(async (ctx: SceneContextMessageUpdate) => {
             const newButtons = Buttons.getLeaveSceneButton(ctx.from?.language_code);
             await ctx.editMessageText('Ну и що ты таки хочешь всем сказать?',

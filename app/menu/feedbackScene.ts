@@ -24,9 +24,6 @@ export default class FeedbackScene {
             session.messageToDelete[ctx.chat.id] = ctx.update.callback_query.message.message_id;
         })
 
-        // this.feedbackScene.leave(async (ctx: SceneContextMessageUpdate) => {
-        // })
-
         this.scene.action(/cancel/, FeedbackScene.getCancel);
         this.scene.hears(/[\w]*/, FeedbackScene.sendMessageToCreator);
 
@@ -49,11 +46,6 @@ export default class FeedbackScene {
             await bot.telegram.deleteMessage(ctx.chat.id, session.messageToDelete[ctx.chat.id]);
             delete session.messageToDelete[ctx.chat.id];
         }
-
-
-        // await bot.telegram.getChat(ctx.chat.id)
-        //     .then(chat => console.log(chat))
-
 
         await bot.telegram.forwardMessage(process.env.OWNER_ID, ctx.chat.id, ctx.message.message_id);
         globalObject.loger.info('feedback', JSON.stringify({

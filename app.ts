@@ -2,7 +2,7 @@ import {TelegrafContext} from 'telegraf/typings/context';
 
 import dotenv from 'dotenv';
 import fs from 'fs';
-import {Markup, Telegraf, Telegram} from 'telegraf';
+import Telegraf, {Telegram} from 'telegraf';
 import {createConnection} from 'typeorm';
 import {Chat} from './app/database/entities/Chat';
 import {ChatState} from './app/database/entities/ChatState';
@@ -12,7 +12,7 @@ import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
 import FeedbackScene from './app/menu/feedbackScene';
 import Middlewares from './app/menu/middlewares';
-import SongHandler from './app/helpers/scripts';
+import SongHandler from './app/helpers/songHandler';
 
 dotenv.config()
 import { Logger } from "tslog";
@@ -20,8 +20,8 @@ import NotifyScene from "./app/menu/notifyScene";
 import {TOptions} from "telegraf/typings/telegraf";
 const globalObject: any = global;
 
-
-globalObject.loger = new Logger();
+const logger = new Logger();
+globalObject.loger = logger;
 
 export const bot = new Telegraf(
     process.env.TELEGRAM_TOKEN,
@@ -72,22 +72,21 @@ bot.action('notify', Middlewares.startNotifyScene);
 
 
 bot.catch((err: any) => {
+    // TODO стрингифуй
     globalObject.loger.fatal(err);
-    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не так').then();
+    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не так 😐').then();
 });
 
 bot.on(['message', 'channel_post'], ctx => SongHandler.handleMessage(ctx));
 
-// startProdMode(bot)
-startDevMode(bot)
-// process.env.NODE_ENV === 'production' ? startProdMode(bot) : startDevMode(bot);
+process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
 
-function startDevMode(tgbot: Telegraf<TelegrafContext>) {
+function startPollingMode(tgbot: Telegraf<TelegrafContext>) {
     globalObject.loger.debug('Starting a bot in develop mode');
     tgbot.startPolling();
 }
 
-async function startProdMode(tgbot: Telegraf<TelegrafContext>) {
+async function startHooksMode(tgbot: Telegraf<TelegrafContext>) {
     globalObject.loger.debug('Starting a bot in production mode');
     const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
 

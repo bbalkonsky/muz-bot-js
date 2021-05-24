@@ -4,9 +4,10 @@ import {CallbackButton, UrlButton} from "telegraf/typings/markup";
 import {ChatState} from "../database/entities/ChatState";
 import Info from "../helpers/info";
 import {TelegrafContext} from "telegraf/typings/context";
+import Helpers from "../helpers/helpers";
 
 export default class Buttons {
-    static getPlatformsButtons(chatPlatforms: ChatPlatforms): CallbackButton[][] {
+    public static getPlatformsButtons(chatPlatforms: ChatPlatforms): CallbackButton[][] {
         const buttons = [];
         let tempArray = [];
         let counter = 1;
@@ -38,7 +39,7 @@ export default class Buttons {
         return Markup.callbackButton(`⏹ ${language === 'ru' ? 'Закрыть' : 'Close'}`, 'close');
     }
 
-    static getMainMenuButtons(ctx: TelegrafContext): CallbackButton[][] {
+    public static getMainMenuButtons(ctx: TelegrafContext): CallbackButton[][] {
         const newKeyboard = [];
         const language = ctx.from?.language_code ?? 'en';
         const isPrivate = ctx.chat.type === 'private';
@@ -52,11 +53,9 @@ export default class Buttons {
             Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts'),
         ]);
 
-        if (ctx.chat.id.toString() === process.env.OWNER_ID) {
-            newKeyboard.push([
-                Markup.callbackButton('🤔 Проорать', 'notify')
-            ]);
-        }
+        newKeyboard.push([
+            Markup.callbackButton('🤔 Проорать', 'notify', !Helpers.isAdmin(ctx.chat.id))
+        ]);
 
         newKeyboard.push([
             Buttons.getCloseButton(language)
@@ -64,7 +63,7 @@ export default class Buttons {
         return newKeyboard;
     }
 
-    static getSettingsButtons(state: ChatState, language: string = 'en'): CallbackButton[][] {
+    public static getSettingsButtons(state: ChatState, language: string = 'en'): CallbackButton[][] {
         return [
             [Markup.callbackButton(`🎧 ${language === 'ru' ? 'Платформы' : 'Platforms'}`, 'platforms')],
             [Markup.callbackButton(`${state.annotations ? '✅' : '❌'}  ${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'state:annotations')],
@@ -72,7 +71,7 @@ export default class Buttons {
         ];
     }
 
-    static getHelpButtons(language: string = 'en'): CallbackButton[][] {
+    public static getHelpButtons(language: string = 'en'): CallbackButton[][] {
         return [
             [Markup.callbackButton(`${language === 'ru' ? 'Что это вообще?' : 'Annotations'}`, 'helpOption:0')],
             [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Annotations'}`, 'helpOption:1')],
@@ -82,7 +81,7 @@ export default class Buttons {
         ];
     }
 
-    static getDonationsButtons(language: string = 'en'): (CallbackButton | UrlButton)[][] {
+    public static getDonationsButtons(language: string = 'en'): (CallbackButton | UrlButton)[][] {
         return [
             [Markup.urlButton(`💵 Yandex Money`, process.env.YMONEY_URL)],
             [Markup.urlButton(`💳 Patreon`, process.env.PATREON_URL)],
@@ -90,7 +89,7 @@ export default class Buttons {
         ]
     }
 
-    static getLeaveSceneButton(language: string = 'en'): CallbackButton[] {
+    public static getLeaveSceneButton(language: string = 'en'): CallbackButton[] {
         return [Markup.callbackButton(`❌ ${language === 'ru' ? 'Отмена' : 'Cancel'}`, 'cancel')];
     }
 }
