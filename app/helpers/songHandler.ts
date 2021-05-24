@@ -24,7 +24,7 @@ export default class SongHandler {
 
     if (parsedMessage) {
       let loadingMessageId: number;
-      ctx.replyWithSticker('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
+      ctx.replyWithDocument('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
           .then((mes) => {
             loadingMessageId = mes.message_id;
           })
