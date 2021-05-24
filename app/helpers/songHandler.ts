@@ -23,14 +23,14 @@ export default class SongHandler {
     const parsedMessage = SongHandler.getParsedMessage(message);
 
     if (parsedMessage) {
-      let loadingMessageId: number;
-      ctx.replyWithDocument('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
-          .then((mes) => {
-            loadingMessageId = mes.message_id;
-          })
-          .catch((err) => {
-            globalObject.loger.error('Не смог отправить гифку');
-          });
+      // let loadingMessageId: number;
+      // ctx.replyWithDocument('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
+      //     .then((mes) => {
+      //       loadingMessageId = mes.message_id;
+      //     })
+      //     .catch((err) => {
+      //       globalObject.loger.error('Не смог отправить гифку');
+      //     });
 
       const chatId = ctx.chat.id;
 
@@ -68,9 +68,9 @@ export default class SongHandler {
                             'но для этого мне нужно дать права на удаление чужих сообщений ' +
                             '(это в настройках администраторов)');
             });
-        if (loadingMessageId) {
-          await bot.telegram.deleteMessage(ctx.chat.id, loadingMessageId);
-        }
+        // if (loadingMessageId) {
+        //   await bot.telegram.deleteMessage(ctx.chat.id, loadingMessageId);
+        // }
         await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
       }
     }
