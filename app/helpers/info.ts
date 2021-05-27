@@ -12,7 +12,7 @@ export default class Info {
         },
         yandex: {
             alias: 'Yandex Music',
-            link: ['music.yandex.ru']
+            link: ['music.yandex']
         },
         youtubeMusic: {
             alias: 'YouTube Music',
