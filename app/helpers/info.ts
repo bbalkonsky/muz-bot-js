@@ -24,7 +24,7 @@ export default class Info {
         },
         deezer: {
             alias: 'Deezer',
-            link: ['deezer.com']
+            link: ['deezer.com', 'deezer.page.link']
         },
         soundcloud: {
             alias: 'SoundCloud',

@@ -34,7 +34,7 @@ export const bot = new Telegraf(
 createConnection({
     type: 'sqlite',
     database: process.env.DBASE_PATH,
-    entities: [Chat, ChatState, ChatPlatforms, Messages], // TODO remove messages
+    entities: [Chat, ChatState, ChatPlatforms, Messages], // TODO
     synchronize: true
 })
     .then()
@@ -72,7 +72,7 @@ bot.action('notify', Middlewares.startNotifyScene);
 
 
 bot.catch((err: any) => {
-    // TODO стрингифуй
+    // TODO
     globalObject.loger.fatal(err);
     bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не так 😐').then();
 });

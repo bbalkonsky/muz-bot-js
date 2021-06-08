@@ -116,18 +116,18 @@ export default class SongHandler {
         });
   }
 
-  // TODO переписать когда обновится api
+  // TODO
   private static getSongName(response: Song): {title: string, artist: string} {
     const entity = response.entitiesByUniqueId[response.entityUniqueId];
     return {title: entity.title, artist: entity.artistName};
   }
 
-  // TODO переписать когда обновится api
+  // TODO
   private static getSongThumb(response: Song): string {
     return response.entitiesByUniqueId[response.entityUniqueId].thumbnailUrl;
   }
 
-  // TODO очень много входных параметров
+  // TODO
   private static getSongLinksButtons(
       response: Song,
       chatPlatforms: ChatPlatforms,
@@ -163,7 +163,7 @@ export default class SongHandler {
     return buttons;
   }
 
-  // TODO надо бы отрефакторить
+  // TODO
   private static getVkLink(songName: string): string {
     const songNameWithoutSymbols =
             encodeURIComponent(songName)
@@ -196,7 +196,7 @@ export default class SongHandler {
     }
   }
 
-  // TODO очень много входных параметров
+  // TODO
   private static prepareReplyText(songName, songThumb, signature, chatAnnotations?: string) {
     const annotations = chatAnnotations?.length ? `\n—\n${chatAnnotations}` : '';
     const title = SongHandler.replaceUnderline(songName.title);

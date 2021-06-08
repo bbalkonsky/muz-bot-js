@@ -10,7 +10,7 @@ import { version } from '../../package.json'
 import Helpers from "../helpers/helpers";
 
 
-// TODO разбить на несколько классов
+// TODO
 export default class Middlewares {
     static async startMdlwr(ctx) {
         const isUserExist = Middlewares.getOrCreateChat(ctx);
@@ -99,7 +99,7 @@ export default class Middlewares {
     }
 
     public static async getOrCreateChat(ctx: TelegrafContext): Promise<boolean> {
-        // TODO вынести дату регистрации в отдельную таблицу
+        // TODO
         const chat = await getRepository(Chat).findOne(ctx.chat.id);
         if (!chat) {
             const dateTime = ctx.message ? ctx.message.date : ctx.channelPost.date;
