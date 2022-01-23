@@ -2,7 +2,7 @@ import {TelegrafContext} from 'telegraf/typings/context';
 
 import dotenv from 'dotenv';
 import fs from 'fs';
-import Telegraf, {Telegram} from 'telegraf';
+import Telegraf, {Markup, Telegram} from 'telegraf';
 import {createConnection} from 'typeorm';
 import {Chat} from './app/database/entities/Chat';
 import {ChatState} from './app/database/entities/ChatState';
@@ -18,9 +18,12 @@ dotenv.config()
 import { Logger } from "tslog";
 import NotifyScene from "./app/menu/notifyScene";
 import {TOptions} from "telegraf/typings/telegraf";
+import axios from "axios";
+import {InlineQueryResult} from "telegraf/typings/telegram-types";
+import Buttons from "./app/menu/buttons";
 const globalObject: any = global;
 
-const logger = new Logger();
+const logger = new Logger({displayDateTime: false, displayFilePath: 'hidden', displayFunctionName: false});
 globalObject.loger = logger;
 
 export const bot = new Telegraf(
@@ -70,6 +73,69 @@ bot.action('close', Middlewares.getClose);
 
 bot.action('notify', Middlewares.startNotifyScene);
 
+bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
+    const urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+
+    const query = inlineQuery.query;
+    if (!query) return;
+
+    if (query.match(urlRegex)) {
+        const options = {
+            key: process.env.ODESLI_TOKEN,
+            url: encodeURIComponent(query)
+        };
+
+        return axios.get(process.env.ODESLI_API_URL, {params: options})
+            .then((res) => {
+                const response = res.data;
+                const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
+                return answerInlineQuery([{
+                    id: firstEntity.id,
+                    type: 'article',
+                    thumb_url: firstEntity.thumbnailUrl,
+                    title: firstEntity.title,
+                    description: firstEntity.artistName,
+                    url: response.linksByPlatform[firstEntity.apiProvider].url,
+                    input_message_content: {
+                        message_text: response.linksByPlatform[firstEntity.apiProvider].url
+                    }
+                }]);
+            })
+            .catch((err) => {
+                console.log(err.response?.status);
+            });
+    } else {
+        const options = {
+            term: query,
+            entity: 'song,album,podcast'
+        };
+
+        return axios.get('https://itunes.apple.com/search', {params: options})
+            .then((res) => {
+                if (res.data.resultCount) {
+                    const results = res.data.results.slice(0, 5);
+                    const answers: InlineQueryResult[] = results.map(x => {
+                        return {
+                            id: `${x.artistId}${x.collectionId}${x.trackId}`,
+                            type: 'article',
+                            thumb_url: x.artworkUrl100,
+                            title: x.wrapperType === 'track' ? `${x.trackName} - ${x.artistName}` : x.artistName,
+                            description: x.collectionName,
+                            url: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl,
+                            input_message_content: {
+                                message_text: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl
+                            }
+                        }
+                    })
+
+                    return answerInlineQuery(answers)
+                }
+            })
+            .catch((err) => {
+                console.log(err.response?.status);
+            });
+    }
+});
 
 bot.catch((err: any) => {
     // TODO

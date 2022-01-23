@@ -99,7 +99,7 @@ export default class SongHandler {
     }
   }
 
-  private static getSongInfoOrReplyError(url: string, ctx: TelegrafContext): any {
+  public static getSongInfoOrReplyError(url: string, ctx: TelegrafContext): any {
     const options = {
       url,
       key: process.env.ODESLI_TOKEN,
