@@ -12,7 +12,7 @@ import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
 import FeedbackScene from './app/menu/feedbackScene';
 import Middlewares from './app/menu/middlewares';
-import SongHandler from './app/helpers/songHandler';
+import SongHandler, {getSongLinksButtons, getSongName, getSongThumb, replaceUnderline} from './app/helpers/songHandler';
 
 dotenv.config()
 import { Logger } from "tslog";
@@ -21,6 +21,7 @@ import {TOptions} from "telegraf/typings/telegraf";
 import axios from "axios";
 import {InlineQueryResult} from "telegraf/typings/telegram-types";
 import Buttons from "./app/menu/buttons";
+import DataBaseController from "./app/database/controllers";
 const globalObject: any = global;
 
 const logger = new Logger({displayDateTime: false, displayFilePath: 'hidden', displayFunctionName: false});
@@ -86,7 +87,20 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
         };
 
         return axios.get(process.env.ODESLI_API_URL, {params: options})
-            .then((res) => {
+            .then(async (res) => {
+                const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
+                const songName = getSongName(res.data);
+                const songThumb = getSongThumb(res.data);
+                const buttons = getSongLinksButtons(res.data, chatPlatforms, songName);
+
+                if (!buttons.length) {
+                    return;
+                }
+
+                const title = replaceUnderline(songName.title);
+                const artist = replaceUnderline(songName.artist);
+                const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+
                 const response = res.data;
                 const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
                 return answerInlineQuery([{
@@ -96,8 +110,11 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
                     title: firstEntity.title,
                     description: firstEntity.artistName,
                     url: response.linksByPlatform[firstEntity.apiProvider].url,
+                    hide_url: true,
+                    reply_markup: Markup.inlineKeyboard(buttons),
                     input_message_content: {
-                        message_text: response.linksByPlatform[firstEntity.apiProvider].url
+                        message_text: replyText,
+                        parse_mode: 'MarkdownV2'
                     }
                 }]);
             })
@@ -122,6 +139,7 @@ bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
                             title: x.wrapperType === 'track' ? `${x.trackName} - ${x.artistName}` : x.artistName,
                             description: x.collectionName,
                             url: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl,
+                            hide_url: true,
                             input_message_content: {
                                 message_text: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl
                             }
