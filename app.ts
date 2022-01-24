@@ -30,8 +30,6 @@ export const bot = new Telegraf(
     } as TOptions
 );
 
-fs.unlinkSync('./muzshare.sqlite') // FIXME REMOVE
-
 createConnection({
     type: 'sqlite',
     database: process.env.DBASE_PATH,
