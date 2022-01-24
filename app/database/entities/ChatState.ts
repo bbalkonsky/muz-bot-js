@@ -5,12 +5,9 @@ export class ChatState {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ default: false })
+    authorMode: boolean;
+
     @Column({ default: true })
     annotations: boolean;
-
-    @Column({ default: false })
-    quiet: boolean;
-
-    @Column({ default: false })
-    rating: boolean;
 }

@@ -46,9 +46,11 @@ export default class NotifyScene {
             delete session.messageToDelete[ctx.chat.id];
         }
 
+        let sended = 0;
         DataBaseController.getAllUsers().then(res => {
             const users: string[] = res.map(i => i.id);
-            users.forEach(user => {
+            users.forEach((user, idx) => {
+                sended++;
                 bot.telegram.sendMessage(user, ctx.message.text)
                     .catch(() => globalObject.loger.error('Не смог послать сообщение'));
             });
@@ -60,7 +62,7 @@ export default class NotifyScene {
                 ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
             });
         const newButtons = Buttons.getMainMenuButtons(ctx);
-        await ctx.reply('йо', Markup.inlineKeyboard(newButtons).extra());
+        await ctx.reply(`Отправил вот стольким людям: ${sended}`, Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
 }

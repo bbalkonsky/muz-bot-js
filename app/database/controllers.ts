@@ -4,11 +4,10 @@ import {ChatState} from "./entities/ChatState";
 import {ChatPlatforms} from "./entities/ChatPlatforms";
 
 export default class DataBaseController {
-    static async createChat(chatId, chatType, regDate): Promise<void> {
+    static async createChat(chatId, chatType): Promise<void> {
         const newChat = new Chat();
         newChat.id = chatId;
         newChat.chatType = chatType;
-        newChat.registrationDate = regDate;
 
         const platforms = new ChatPlatforms();
         const state = new ChatState();

@@ -44,17 +44,17 @@ export default class Buttons {
         const language = ctx.from?.language_code ?? 'en';
         const isPrivate = ctx.chat.type === 'private';
 
-        newKeyboard.push([
-            Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings'),
-            Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')
-        ]);
+        newKeyboard.push(
+            [Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings')],
+            [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')]
+        );
         newKeyboard.push([
             // Markup.callbackButton(`💰 ${language === 'ru' ? 'Поддержать' : 'Donate'}`, 'donate'),
             Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts'),
         ]);
 
         newKeyboard.push([
-            Markup.callbackButton('🤔 Проорать', 'notify', !Helpers.isAdmin(ctx.chat.id))
+            Markup.callbackButton('🤔 Сказать всем !!!', 'notify', !Helpers.isAdmin(ctx.chat.id))
         ]);
 
         newKeyboard.push([
@@ -66,6 +66,7 @@ export default class Buttons {
     public static getSettingsButtons(state: ChatState, language: string = 'en'): CallbackButton[][] {
         return [
             [Markup.callbackButton(`🎧 ${language === 'ru' ? 'Платформы' : 'Platforms'}`, 'platforms')],
+            [Markup.callbackButton(`${state.authorMode ? '✅' : '❌'} ${language === 'ru' ? 'Режим автора' : 'Author mode'}`, 'state:authorMode')],
             [Markup.callbackButton(`${state.annotations ? '✅' : '❌'}  ${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'state:annotations')],
             [Buttons.getBackButton(language), Buttons.getCloseButton(language)]
         ];

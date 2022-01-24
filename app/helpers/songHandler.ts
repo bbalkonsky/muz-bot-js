@@ -8,71 +8,76 @@ import DataBaseController from '../database/controllers';
 import Middlewares from '../menu/middlewares';
 import {Song} from '../models/song';
 import {TelegrafContext} from 'telegraf/typings/context';
-import {bot} from '../../app';
 import Helpers from "./helpers";
 const globalObject: any = global;
 
-export default class SongHandler {
-  public static async handleMessage(ctx: TelegrafContext) {
-    const message = ctx.updateType === 'message' ?
-            ctx.message :
-            ctx.updateType === 'channel_post' ?
-                ctx.channelPost :
-                null;
-    if (!message?.entities) return;
-    const parsedMessage = getParsedMessage(message);
+const handleMessage = async (ctx: TelegrafContext) => {
+  const message = ctx.updateType === 'message' ?
+          ctx.message :
+          ctx.updateType === 'channel_post' ?
+              ctx.channelPost :
+              null;
+  if (!message?.entities) return;
+  const parsedMessage = getParsedMessage(message);
 
-    if (parsedMessage) {
-      // let loadingMessageId: number;
-      // ctx.replyWithDocument('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
-      //     .then((mes) => {
-      //       loadingMessageId = mes.message_id;
-      //     })
-      //     .catch((err) => {
-      //       globalObject.loger.error('Не смог отправить гифку');
-      //     });
+  if (parsedMessage) {
+    // let loadingMessageId: number;
+    // ctx.replyWithDocument('CgACAgQAAxkBAAIOUGCrZ9K7IOnWXkJGbgqF2eHOaBtkAAJCAgACeOiUUh4Te5TPLkixHwQ')
+    //     .then((mes) => {
+    //       loadingMessageId = mes.message_id;
+    //     })
+    //     .catch((err) => {
+    //       globalObject.loger.error('Не смог отправить гифку');
+    //     });
 
-      const chatId = ctx.chat.id;
+    const chatId = ctx.chat.id;
 
-      await Middlewares.getOrCreateChat(ctx);
-      if (!Helpers.isAdmin(ctx.chat.id)) {
-        globalObject.loger.info('message', JSON.stringify({
-          chatId,
-          chatType: ctx.chat.type,
-        }));
+    await Middlewares.getOrCreateChat(chatId, ctx.chat.type);
+
+    if (ctx.chat.type !== 'private') {
+      const chatState = await DataBaseController.getChatState(chatId);
+      if (!chatState.authorMode) {
+        return;
+      }
+    }
+
+    if (!Helpers.isAdmin(chatId)) {
+      globalObject.loger.info('message', JSON.stringify({
+        chatId,
+        chatType: ctx.chat.type,
+      }));
+    }
+
+    const chatPlatforms = await DataBaseController.getChatPlatforms(chatId);
+    const songInfo = await getSongInfoOrReplyError(parsedMessage.url, ctx);
+
+    if (songInfo) {
+      const songName = getSongName(songInfo);
+      const songThumb = getSongThumb(songInfo);
+      const buttons = getSongLinksButtons(songInfo, chatPlatforms, songName);
+
+      if (!buttons.length) {
+        await ctx.reply('Выбранных тобой платформ в найденном нет 🙃');
+        return;
       }
 
-      const chatPlatforms = await DataBaseController.getChatPlatforms(chatId);
-      const songInfo = await getSongInfoOrReplyError(parsedMessage.url, ctx);
+      const chatState = await DataBaseController.getChatState(chatId);
+      const chatAnnotations = chatState.annotations ? parsedMessage.description : null;
 
-      if (songInfo) {
-        const songName = getSongName(songInfo);
-        const songThumb = getSongThumb(songInfo);
-        const buttons = getSongLinksButtons(songInfo, chatPlatforms, songName);
+      const signature = sentBy(ctx.from, ctx.chat.type);
+      const replyText = prepareReplyText(songName, songThumb, signature, chatAnnotations);
 
-        if (!buttons.length) {
-          await ctx.reply('Выбранных тобой платформ в найденном нет 🙃');
-          return;
-        }
-
-        const chatState = await DataBaseController.getChatState(chatId);
-        const chatAnnotations = chatState.annotations ? parsedMessage.description : null;
-
-        const signature = sentBy(ctx.from, ctx.chat.type);
-        const replyText = prepareReplyText(songName, songThumb, signature, chatAnnotations);
-
-        await ctx.deleteMessage()
-            .then()
-            .catch(() => {
-              ctx.reply('Я, кстати, могу удалять оригинальное сообщение, ' +
-                            'но для этого мне нужно дать права на удаление чужих сообщений ' +
-                            '(это в настройках администраторов)');
-            });
-        // if (loadingMessageId) {
-        //   await bot.telegram.deleteMessage(ctx.chat.id, loadingMessageId);
-        // }
-        await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
-      }
+      await ctx.deleteMessage()
+          .then()
+          .catch(() => {
+            ctx.reply('Я, кстати, могу удалять оригинальное сообщение, ' +
+                          'но для этого мне нужно дать права на удаление чужих сообщений ' +
+                          '(это в настройках администраторов)');
+          });
+      // if (loadingMessageId) {
+      //   await bot.telegram.deleteMessage(ctx.chat.id, loadingMessageId);
+      // }
+      await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
     }
   }
 }
@@ -208,4 +213,5 @@ const replaceUnderline = (toReplace: string): string => {
   return toReplace.replace('_', '\\_');
 }
 
+export default handleMessage;
 export { getSongName, getSongThumb, getSongLinksButtons, replaceUnderline };

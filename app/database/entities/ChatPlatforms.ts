@@ -26,9 +26,6 @@ export class ChatPlatforms {
     @Column({ default: true })
     soundcloud: boolean;
 
-    // @Column({ default: true })
-    // google: boolean;
-
     @Column({ default: true })
     tidal: boolean;
 

@@ -8,12 +8,16 @@ import {Chat} from "../database/entities/Chat";
 import {TelegrafContext} from "telegraf/typings/context";
 import { version } from '../../package.json'
 import Helpers from "../helpers/helpers";
+import axios from "axios";
+import {getSongLinksButtons, getSongName, getSongThumb, replaceUnderline} from "../helpers/songHandler";
+import {InlineQueryResult} from "telegraf/typings/telegram-types";
+const globalObject: any = global;
 
 
 // TODO
 export default class Middlewares {
     static async startMdlwr(ctx) {
-        const isUserExist = Middlewares.getOrCreateChat(ctx);
+        const isUserExist = Middlewares.getOrCreateChat(ctx.chat.id, ctx.chat.type);
         if (!isUserExist) {
             await ctx.reply('Привет! Отправляй мне ссылку на песню и увидишь магию!\nВсе остальное спрятано за /menu');
         } else {
@@ -22,7 +26,7 @@ export default class Middlewares {
     }
 
     public static async getMainMenu(ctx: TelegrafContext) {
-        await Middlewares.getOrCreateChat(ctx);
+        await Middlewares.getOrCreateChat(ctx.chat.id, ctx.chat.type);
         await ctx.deleteMessage();
         const newButtons = Buttons.getMainMenuButtons(ctx);
         return ctx.reply('Привет! Чем могу помочь?', Markup.inlineKeyboard(newButtons).extra());
@@ -40,10 +44,10 @@ export default class Middlewares {
         return ctx.editMessageText('Настройки бота', {reply_markup: Markup.inlineKeyboard(newButtons)});
     }
 
-    public static async getDonations(ctx: TelegrafContext) {
-        const newButtons = Buttons.getDonationsButtons(ctx.from?.language_code);
-        return ctx.editMessageText('Поддержать автора', {reply_markup: Markup.inlineKeyboard(newButtons)});
-    }
+    // public static async getDonations(ctx: TelegrafContext) {
+    //     const newButtons = Buttons.getDonationsButtons(ctx.from?.language_code);
+    //     return ctx.editMessageText('Поддержать автора', {reply_markup: Markup.inlineKeyboard(newButtons)});
+    // }
 
     public static async getHelp(ctx: TelegrafContext) {
         const newButtons = Buttons.getHelpButtons(ctx.from?.language_code);
@@ -98,12 +102,11 @@ export default class Middlewares {
             });
     }
 
-    public static async getOrCreateChat(ctx: TelegrafContext): Promise<boolean> {
+    public static async getOrCreateChat(chatId: number, chatType: string): Promise<boolean> {
         // TODO
-        const chat = await getRepository(Chat).findOne(ctx.chat.id);
+        const chat = await getRepository(Chat).findOne(chatId);
         if (!chat) {
-            const dateTime = ctx.message ? ctx.message.date : ctx.channelPost.date;
-            await DataBaseController.createChat(ctx.chat.id, ctx.chat.type, dateTime);
+            await DataBaseController.createChat(chatId, chatType);
             return false;
         } else {
             return true;
@@ -120,3 +123,99 @@ export default class Middlewares {
             : null;
     }
 }
+
+const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
+    const { inlineQuery, answerInlineQuery } = ctx;
+    const urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+
+    const query = inlineQuery.query;
+    if (!query) return;
+
+    if (query.match(urlRegex)) {
+        const options = {
+            key: process.env.ODESLI_TOKEN,
+            url: encodeURIComponent(query)
+        };
+
+        return axios.get(process.env.ODESLI_API_URL, {params: options})
+            .then(async (res) => {
+                const response = res.data;
+
+                await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
+                const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
+
+                const songName = getSongName(response);
+                const songThumb = getSongThumb(response);
+                const buttons = getSongLinksButtons(response, chatPlatforms, songName);
+
+                if (!buttons.length) {
+                    return;
+                }
+
+                if (Helpers.isAdmin(inlineQuery.from.id)) {
+                    globalObject.loger.info('message', JSON.stringify({
+                        chatId: inlineQuery.from.id,
+                        chatType: 'inline',
+                    }));
+                }
+
+                const title = replaceUnderline(songName.title);
+                const artist = replaceUnderline(songName.artist);
+                const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+
+                const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
+                return answerInlineQuery([{
+                    id: firstEntity.id,
+                    type: 'article',
+                    thumb_url: firstEntity.thumbnailUrl,
+                    title: firstEntity.title,
+                    description: firstEntity.artistName,
+                    url: response.linksByPlatform[firstEntity.apiProvider].url,
+                    hide_url: true,
+                    reply_markup: Markup.inlineKeyboard(buttons),
+                    input_message_content: {
+                        message_text: replyText,
+                        parse_mode: 'Markdown'
+                    }
+                }]);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    } else {
+        return; // TODO HAHAHAH
+
+        const options = {
+            term: query,
+            entity: 'song,album,podcast'
+        };
+
+        return axios.get('https://itunes.apple.com/search', {params: options})
+            .then((res) => {
+                if (res.data.resultCount) {
+                    const results = res.data.results.slice(0, 5);
+                    const answers: InlineQueryResult[] = results.map(x => {
+                        return {
+                            id: `${x.artistId}${x.collectionId}${x.trackId}`,
+                            type: 'article',
+                            thumb_url: x.artworkUrl100,
+                            title: x.wrapperType === 'track' ? `${x.trackName} - ${x.artistName}` : x.artistName,
+                            description: x.collectionName,
+                            url: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl,
+                            hide_url: true,
+                            input_message_content: {
+                                message_text: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl
+                            }
+                        }
+                    })
+
+                    return answerInlineQuery(answers)
+                }
+            })
+            .catch((err) => {
+                console.log(err.response?.status);
+            });
+    }
+}
+
+export { handleInlineQuery };
