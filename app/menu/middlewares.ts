@@ -180,7 +180,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
                 }]);
             })
             .catch((err) => {
-                console.log(err);
+                console.log(`${err.response?.status}: ${inlineQuery.query}`);
             });
     } else {
         return; // TODO HAHAHAH
