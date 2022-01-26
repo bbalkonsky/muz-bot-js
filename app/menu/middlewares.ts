@@ -184,7 +184,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         return;
     }
 
-    if (Helpers.isAdmin(inlineQuery.from.id)) {
+    if (!Helpers.isAdmin(inlineQuery.from.id)) {
         globalObject.loger.info('message', JSON.stringify({
             chatId: inlineQuery.from.id,
             chatType: 'inline',
