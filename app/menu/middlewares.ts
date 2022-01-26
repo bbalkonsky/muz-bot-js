@@ -131,91 +131,85 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     const query = inlineQuery.query;
     if (!query) return;
 
+    let response;
+    let odesliOptionsUrl;
+
     if (query.match(urlRegex)) {
-        const options = {
-            key: process.env.ODESLI_TOKEN,
-            url: encodeURIComponent(query)
-        };
-
-        return axios.get(process.env.ODESLI_API_URL, {params: options})
-            .then(async (res) => {
-                const response = res.data;
-
-                await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
-                const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
-
-                const songName = getSongName(response);
-                const songThumb = getSongThumb(response);
-                const buttons = getSongLinksButtons(response, chatPlatforms, songName);
-
-                if (!buttons.length) {
-                    return;
-                }
-
-                if (Helpers.isAdmin(inlineQuery.from.id)) {
-                    globalObject.loger.info('message', JSON.stringify({
-                        chatId: inlineQuery.from.id,
-                        chatType: 'inline',
-                    }));
-                }
-
-                const title = replaceUnderline(songName.title);
-                const artist = replaceUnderline(songName.artist);
-                const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
-
-                const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
-                return answerInlineQuery([{
-                    id: firstEntity.id,
-                    type: 'article',
-                    thumb_url: firstEntity.thumbnailUrl,
-                    title: firstEntity.title,
-                    description: firstEntity.artistName,
-                    url: response.linksByPlatform[firstEntity.apiProvider].url,
-                    hide_url: true,
-                    reply_markup: Markup.inlineKeyboard(buttons),
-                    input_message_content: {
-                        message_text: replyText,
-                        parse_mode: 'Markdown'
-                    }
-                }]);
-            })
-            .catch((err) => {
-                console.log(`${err.response?.status}: ${inlineQuery.query}`);
-            });
+        odesliOptionsUrl = encodeURIComponent(query);
     } else {
-        return; // TODO HAHAHAH
-
         const options = {
             term: query,
             entity: 'song,album,podcast'
         };
 
-        return axios.get('https://itunes.apple.com/search', {params: options})
-            .then((res) => {
-                if (res.data.resultCount) {
-                    const results = res.data.results.slice(0, 5);
-                    const answers: InlineQueryResult[] = results.map(x => {
-                        return {
-                            id: `${x.artistId}${x.collectionId}${x.trackId}`,
-                            type: 'article',
-                            thumb_url: x.artworkUrl100,
-                            title: x.wrapperType === 'track' ? `${x.trackName} - ${x.artistName}` : x.artistName,
-                            description: x.collectionName,
-                            url: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl,
-                            hide_url: true,
-                            input_message_content: {
-                                message_text: x.trackViewUrl ? x.trackViewUrl : x.collectionViewUrl
-                            }
-                        }
-                    })
+        let result;
+        try {
+            result = await axios.get('https://itunes.apple.com/search', {params: options});
+        } catch(e) {
+            result = null;
+        }
 
-                    return answerInlineQuery(answers)
-                }
-            })
-            .catch((err) => {
-                console.log(err.response?.status);
-            });
+        if (result?.data?.resultCount) {
+            const firstResult = result.data.results[0];
+            odesliOptionsUrl = firstResult.trackViewUrl ? firstResult.trackViewUrl : firstResult.collectionViewUrl;
+        } else {
+            return;
+        }
     }
+
+    try {
+        const odesliOptions = {
+            key: process.env.ODESLI_TOKEN,
+            url: odesliOptionsUrl
+        };
+
+        const songs = await axios.get(process.env.ODESLI_API_URL, {params: odesliOptions});
+        response = songs.data;
+    } catch(e) {
+        response = null;
+    }
+
+    if (!response) {
+        return;
+    }
+
+    await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
+    const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
+
+    const songName = getSongName(response);
+    const songThumb = getSongThumb(response);
+    const buttons = getSongLinksButtons(response, chatPlatforms, songName);
+
+    if (!buttons.length) {
+        return;
+    }
+
+    if (Helpers.isAdmin(inlineQuery.from.id)) {
+        globalObject.loger.info('message', JSON.stringify({
+            chatId: inlineQuery.from.id,
+            chatType: 'inline',
+        }));
+    }
+
+    const title = replaceUnderline(songName.title);
+    const artist = replaceUnderline(songName.artist);
+    const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+
+    const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
+    return answerInlineQuery([{
+        id: firstEntity.id,
+        type: 'article',
+        thumb_url: firstEntity.thumbnailUrl,
+        title: firstEntity.title,
+        description: firstEntity.artistName,
+        url: response.linksByPlatform[firstEntity.apiProvider].url,
+        hide_url: true,
+        reply_markup: Markup.inlineKeyboard(buttons),
+        input_message_content: {
+            message_text: replyText,
+            parse_mode: 'Markdown'
+        }
+    }]);
 }
 
 export { handleInlineQuery };
