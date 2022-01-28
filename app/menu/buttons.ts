@@ -46,15 +46,13 @@ export default class Buttons {
 
         newKeyboard.push(
             [Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings')],
-            [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')]
+            [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')],
+            [Markup.urlButton(`💰 ${language === 'ru' ? 'Поддержать' : 'Donate'}`, process.env.YMONEY_URL)],
+            [Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts')],
         );
-        newKeyboard.push([
-            // Markup.callbackButton(`💰 ${language === 'ru' ? 'Поддержать' : 'Donate'}`, 'donate'),
-            Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts'),
-        ]);
 
         newKeyboard.push([
-            Markup.callbackButton('🤔 Сказать всем !!!', 'notify', !Helpers.isAdmin(ctx.chat.id))
+            Markup.callbackButton('🤔 Сказать всем', 'notify', !Helpers.isAdmin(ctx.chat.id))
         ]);
 
         newKeyboard.push([
@@ -84,7 +82,7 @@ export default class Buttons {
 
     public static getDonationsButtons(language: string = 'en'): (CallbackButton | UrlButton)[][] {
         return [
-            [Markup.urlButton(`💵 Yandex Money`, process.env.YMONEY_URL)],
+            [Markup.urlButton(`💵 Yoomoney`, process.env.YMONEY_URL)],
             [Markup.urlButton(`💳 Patreon`, process.env.PATREON_URL)],
             [Buttons.getBackButton(language), Buttons.getCloseButton(language)]
         ]
