@@ -129,13 +129,15 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     const urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
 
     const query = inlineQuery.query;
-    if (!query) return;
+    if (!query) {
+        return answerInlineQuery([]);
+    }
 
     let response;
     let odesliOptionsUrl;
 
     if (query.match(urlRegex)) {
-        odesliOptionsUrl = encodeURIComponent(query);
+        odesliOptionsUrl = [encodeURIComponent(query)];
     } else {
         const options = {
             term: query,
@@ -150,21 +152,18 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         }
 
         if (result?.data?.resultCount) {
-            const firstResult = result.data.results[0];
-            odesliOptionsUrl = firstResult.trackViewUrl ? firstResult.trackViewUrl : firstResult.collectionViewUrl;
+            odesliOptionsUrl = result?.data?.results.slice(0, 5).map(x => x.trackViewUrl ?? x.collectionViewUrl) ?? [];
         } else {
             return;
         }
     }
 
     try {
-        const odesliOptions = {
-            key: process.env.ODESLI_TOKEN,
-            url: odesliOptionsUrl
-        };
-
-        const songs = await axios.get(process.env.ODESLI_API_URL, {params: odesliOptions});
-        response = songs.data;
+        const queries = odesliOptionsUrl.map(x => {
+            const options = {key: process.env.ODESLI_TOKEN, url: x};
+            return axios.get(process.env.ODESLI_API_URL, {params: options});
+        })
+        response = await Promise.allSettled(queries);
     } catch(e) {
         response = null;
     }
@@ -176,13 +175,48 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
     const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
 
-    const songName = getSongName(response);
-    const songThumb = getSongThumb(response);
-    const buttons = getSongLinksButtons(response, chatPlatforms, songName);
+    const res = [];
+    response.forEach(x => {
+        if (x.status === 'rejected') {
+            return;
+        }
 
-    if (!buttons.length) {
-        return;
-    }
+        const song = x.value.data;
+
+        try {
+            const songName = getSongName(song);
+            const songThumb = getSongThumb(song);
+            const buttons = getSongLinksButtons(song, chatPlatforms, songName);
+
+            if (!buttons.length) {
+                return;
+            }
+
+            const title = replaceUnderline(songName.title);
+            const artist = replaceUnderline(songName.artist);
+            const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+
+            const firstEntity = song.entitiesByUniqueId[song.entityUniqueId];
+
+            res.push({
+                id: firstEntity.id,
+                type: 'article',
+                thumb_url: firstEntity.thumbnailUrl,
+                title: firstEntity.title,
+                description: firstEntity.artistName,
+                // @ts-ignore
+                url: Object.values(song.linksByPlatform)[0].url,
+                hide_url: true,
+                reply_markup: Markup.inlineKeyboard(buttons),
+                input_message_content: {
+                    message_text: replyText,
+                    parse_mode: 'Markdown'
+                }
+            });
+        } catch (e) {
+            return;
+        }
+    });
 
     if (!Helpers.isAdmin(inlineQuery.from.id)) {
         globalObject.loger.info('message', JSON.stringify({
@@ -191,25 +225,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         }));
     }
 
-    const title = replaceUnderline(songName.title);
-    const artist = replaceUnderline(songName.artist);
-    const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
-
-    const firstEntity = response.entitiesByUniqueId[response.entityUniqueId];
-    return answerInlineQuery([{
-        id: firstEntity.id,
-        type: 'article',
-        thumb_url: firstEntity.thumbnailUrl,
-        title: firstEntity.title,
-        description: firstEntity.artistName,
-        url: response.linksByPlatform[firstEntity.apiProvider].url,
-        hide_url: true,
-        reply_markup: Markup.inlineKeyboard(buttons),
-        input_message_content: {
-            message_text: replyText,
-            parse_mode: 'Markdown'
-        }
-    }]);
+    return answerInlineQuery(res);
 }
 
 export { handleInlineQuery };

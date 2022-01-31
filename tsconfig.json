@@ -3,7 +3,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es6",
-    "lib": ["es2019", "DOM", "ES6" ,"DOM.Iterable", "ScriptHost"],
+    "lib": ["es2019", "DOM", "ES6" ,"DOM.Iterable", "ScriptHost", "ES2020.Promise"],
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
