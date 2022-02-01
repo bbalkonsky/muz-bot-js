@@ -147,8 +147,12 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         let result;
         try {
             result = await axios.get('https://itunes.apple.com/search', {params: options});
+            // result = await fetch(`https://itunes.apple.com/search?entity=song,album,podcast&term=${query}`)
+            // result = result.json()
+            // console.log(result)
         } catch(e) {
             result = null;
+            // console.log(e)
         }
 
         if (result?.data?.resultCount) {
@@ -219,10 +223,14 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     });
 
     if (!Helpers.isAdmin(inlineQuery.from.id)) {
-        globalObject.loger.info('message', JSON.stringify({
-            chatId: inlineQuery.from.id,
-            chatType: 'inline',
-        }));
+    //     globalObject.loger(
+          console.log(
+            JSON.stringify({
+                messageType: 'message',
+                chatId: inlineQuery.from.id,
+                chatType: 'inline',
+            })
+        );
     }
 
     return answerInlineQuery(res);

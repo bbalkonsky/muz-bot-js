@@ -42,10 +42,14 @@ const handleMessage = async (ctx: TelegrafContext) => {
     }
 
     if (!Helpers.isAdmin(chatId)) {
-      globalObject.loger.info('message', JSON.stringify({
-        chatId,
-        chatType: ctx.chat.type,
-      }));
+      // globalObject.loger.info('message',
+      console.log(
+          JSON.stringify({
+            messageType: 'message',
+            chatId,
+            chatType: ctx.chat.type,
+          })
+      );
     }
 
     const chatPlatforms = await DataBaseController.getChatPlatforms(chatId);
