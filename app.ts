@@ -19,6 +19,8 @@ import {TOptions} from "telegraf/typings/telegraf";
 dotenv.config()
 const globalObject: any = global;
 
+globalObject.inlineCounter = {id: 0, time: 0};
+
 const logger = new Logger({displayDateTime: false, displayFilePath: 'hidden', displayFunctionName: false});
 globalObject.loger = logger;
 

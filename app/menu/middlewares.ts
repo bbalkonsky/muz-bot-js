@@ -188,9 +188,64 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         const song = x.value.data;
 
         try {
-            const songName = getSongName(song);
-            const songThumb = getSongThumb(song);
-            const buttons = getSongLinksButtons(song, chatPlatforms, songName);
+            // const songName = getSongName(song);
+            // const songThumb = getSongThumb(song);
+            // const buttons = getSongLinksButtons(song, chatPlatforms, songName);
+            //
+            // if (!buttons.length) {
+            //     return;
+            // }
+            //
+            // const title = replaceUnderline(songName.title);
+            // const artist = replaceUnderline(songName.artist);
+            // const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+            //
+            // const firstEntity = song.entitiesByUniqueId[song.entityUniqueId];
+            //
+            // res.push({
+            //     id: Math.random() * Math.random(),
+            //     type: 'article',
+            //     thumb_url: firstEntity.thumbnailUrl,
+            //     title: firstEntity.title,
+            //     description: firstEntity.artistName,
+            //     // @ts-ignore
+            //     url: Object.values(song.linksByPlatform)[0].url,
+            //     hide_url: true,
+            //     reply_markup: Markup.inlineKeyboard(buttons),
+            //     input_message_content: {
+            //         message_text: replyText,
+            //         parse_mode: 'Markdown'
+            //     }
+            // });
+            res.push(generateInlineSongItem(song, chatPlatforms));
+        } catch (e) {
+            console.log(222)
+            return;
+        }
+    }
+
+    const chatId = inlineQuery.from.id;
+    if (!Helpers.isAdmin(chatId)) {
+        if (globalObject.inlineCounter.id !== chatId) {
+            globalObject.inlineCounter = { id: chatId, time: Date.now() };
+            console.log('new')
+        } else if (Date.now() - globalObject.inlineCounter.time > 60000) { // one minute
+            globalObject.inlineCounter.time = Date.now();
+            sendConsoleLog(chatId)
+        }
+    }
+
+    console.timeEnd('1');
+    return answerInlineQuery(res, {
+        switch_pm_text: 'Перейти в диалог',
+        switch_pm_parameter: 'nope'
+    });
+}
+
+const generateInlineSongItem = (song: any, chatPlatforms): any => {
+    const songName = getSongName(song);
+    const songThumb = getSongThumb(song);
+    const buttons = getSongLinksButtons(song, chatPlatforms, songName);
 
             if (!buttons.length) {
                 return;
@@ -234,6 +289,16 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     }
 
     return answerInlineQuery(res);
+}
+
+const sendConsoleLog = (chatId: number): void => {
+    console.log(
+        JSON.stringify({
+            messageType: 'message',
+            chatId,
+            chatType: 'inline',
+        })
+    );
 }
 
 export { handleInlineQuery };
