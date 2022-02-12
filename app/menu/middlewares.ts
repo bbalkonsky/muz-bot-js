@@ -10,7 +10,6 @@ import { version } from '../../package.json'
 import Helpers from "../helpers/helpers";
 import axios from "axios";
 import {getSongLinksButtons, getSongName, getSongThumb, replaceUnderline} from "../helpers/songHandler";
-import {InlineQueryResult} from "telegraf/typings/telegram-types";
 const globalObject: any = global;
 
 
@@ -43,11 +42,6 @@ export default class Middlewares {
         const newButtons = Buttons.getSettingsButtons(state, ctx.from?.language_code);
         return ctx.editMessageText('Настройки бота', {reply_markup: Markup.inlineKeyboard(newButtons)});
     }
-
-    // public static async getDonations(ctx: TelegrafContext) {
-    //     const newButtons = Buttons.getDonationsButtons(ctx.from?.language_code);
-    //     return ctx.editMessageText('Поддержать автора', {reply_markup: Markup.inlineKeyboard(newButtons)});
-    // }
 
     public static async getHelp(ctx: TelegrafContext) {
         const newButtons = Buttons.getHelpButtons(ctx.from?.language_code);
@@ -147,12 +141,8 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         let result;
         try {
             result = await axios.get('https://itunes.apple.com/search', {params: options});
-            // result = await fetch(`https://itunes.apple.com/search?entity=song,album,podcast&term=${query}`)
-            // result = result.json()
-            // console.log(result)
         } catch(e) {
             result = null;
-            // console.log(e)
         }
 
         if (result?.data?.resultCount) {
@@ -180,9 +170,9 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     const chatPlatforms = await DataBaseController.getChatPlatforms(inlineQuery.from.id);
 
     const res = [];
-    response.forEach(x => {
+    for (const x of response) {
         if (x.status === 'rejected') {
-            return;
+            continue;
         }
 
         const song = x.value.data;
@@ -228,14 +218,12 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     if (!Helpers.isAdmin(chatId)) {
         if (globalObject.inlineCounter.id !== chatId) {
             globalObject.inlineCounter = { id: chatId, time: Date.now() };
-            console.log('new')
         } else if (Date.now() - globalObject.inlineCounter.time > 60000) { // one minute
             globalObject.inlineCounter.time = Date.now();
             sendConsoleLog(chatId)
         }
     }
 
-    console.timeEnd('1');
     return answerInlineQuery(res, {
         switch_pm_text: 'Перейти в диалог',
         switch_pm_parameter: 'nope'
@@ -247,48 +235,31 @@ const generateInlineSongItem = (song: any, chatPlatforms): any => {
     const songThumb = getSongThumb(song);
     const buttons = getSongLinksButtons(song, chatPlatforms, songName);
 
-            if (!buttons.length) {
-                return;
-            }
-
-            const title = replaceUnderline(songName.title);
-            const artist = replaceUnderline(songName.artist);
-            const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
-
-            const firstEntity = song.entitiesByUniqueId[song.entityUniqueId];
-
-            res.push({
-                id: firstEntity.id,
-                type: 'article',
-                thumb_url: firstEntity.thumbnailUrl,
-                title: firstEntity.title,
-                description: firstEntity.artistName,
-                // @ts-ignore
-                url: Object.values(song.linksByPlatform)[0].url,
-                hide_url: true,
-                reply_markup: Markup.inlineKeyboard(buttons),
-                input_message_content: {
-                    message_text: replyText,
-                    parse_mode: 'Markdown'
-                }
-            });
-        } catch (e) {
-            return;
-        }
-    });
-
-    if (!Helpers.isAdmin(inlineQuery.from.id)) {
-    //     globalObject.loger(
-          console.log(
-            JSON.stringify({
-                messageType: 'message',
-                chatId: inlineQuery.from.id,
-                chatType: 'inline',
-            })
-        );
+    if (!buttons.length) {
+        return;
     }
 
-    return answerInlineQuery(res);
+    const title = replaceUnderline(songName.title);
+    const artist = replaceUnderline(songName.artist);
+    const replyText = `*${title}*\n${artist}[\u200B](${songThumb})`;
+
+    const firstEntity = song.entitiesByUniqueId[song.entityUniqueId];
+
+    return {
+        id: Math.random() * Math.random(),
+        type: 'article',
+        thumb_url: firstEntity.thumbnailUrl,
+        title: firstEntity.title,
+        description: firstEntity.artistName,
+        // @ts-ignore
+        url: Object.values(song.linksByPlatform)[0].url,
+        hide_url: true,
+        reply_markup: Markup.inlineKeyboard(buttons),
+        input_message_content: {
+            message_text: replyText,
+            parse_mode: 'Markdown'
+        }
+    }
 }
 
 const sendConsoleLog = (chatId: number): void => {
