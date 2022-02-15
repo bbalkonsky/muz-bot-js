@@ -57,6 +57,7 @@ bot.command('start', Middlewares.startMdlwr);
 bot.command('menu', Middlewares.getMainMenu);
 
 bot.command('version', Middlewares.sendBotVersion);
+bot.command('count', Middlewares.sendUsersCount);
 
 bot.action('contacts', Middlewares.startContactsScene);
 bot.action('platforms', Middlewares.getPlatforms);

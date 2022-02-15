@@ -116,6 +116,19 @@ export default class Middlewares {
             ? ctx.scene.enter('notifyScene')
             : null;
     }
+
+    public static async sendUsersCount(ctx: TelegrafContext): Promise<any> {
+        if (Helpers.isAdmin(ctx.chat.id)) {
+            try {
+                const users = await DataBaseController.getAllUsers();
+                const usersCount = users.filter(user => user.id > 0).length;
+                return ctx.reply(`${usersCount}`);
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
 }
 
 const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
