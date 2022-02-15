@@ -120,9 +120,30 @@ export default class Middlewares {
     public static async sendUsersCount(ctx: TelegrafContext): Promise<any> {
         if (Helpers.isAdmin(ctx.chat.id)) {
             try {
-                const users = await DataBaseController.getAllUsers();
-                const usersCount = users.filter(user => user.id > 0).length;
-                return ctx.reply(`${usersCount}`);
+                const usersByTypes = {
+                    private: 0,
+                    group: 0,
+                    channel: 0
+                }
+
+                const users = await DataBaseController.getReallyAllUsers();
+                users.forEach(u => {
+                    switch(u.chatType) {
+                        case 'private':
+                            usersByTypes.private++;
+                            break;
+                        case 'group':
+                        case 'supergroup':
+                            usersByTypes.group++;
+                            break;
+                        case 'channel':
+                            usersByTypes.channel++;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                return ctx.reply(`Users: ${usersByTypes.private}\nGroups: ${usersByTypes.group}\nChannels: ${usersByTypes.channel}`);
             } catch (e) {
                 return null;
             }

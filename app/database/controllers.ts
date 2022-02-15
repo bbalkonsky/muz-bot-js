@@ -50,4 +50,10 @@ export default class DataBaseController {
             where: {chatType: 'private', id: Not(Equal(process.env.OWNER_ID))}
         });
     }
+
+    static async getReallyAllUsers(): Promise<any> {
+        return getRepository(Chat).find({
+            where: {id: Not(Equal(process.env.OWNER_ID))}
+        });
+    }
 }
