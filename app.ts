@@ -10,11 +10,12 @@ import {ChatPlatforms} from './app/database/entities/ChatPlatforms';
 import session from 'telegraf/session';
 import Stage from 'telegraf/stage';
 import FeedbackScene from './app/menu/feedbackScene';
-import Middlewares, {handleInlineQuery} from './app/menu/middlewares';
+import Middlewares from './app/menu/middlewares';
 import handleMessage from './app/helpers/songHandler';
 import {Logger} from "tslog";
 import NotifyScene from "./app/menu/notifyScene";
 import {TOptions} from "telegraf/typings/telegraf";
+import {handleInlineQuery} from "./app/middlewares/inlineQueryMiddleware";
 
 dotenv.config()
 const globalObject: any = global;
@@ -73,10 +74,13 @@ bot.action('close', Middlewares.getClose);
 bot.action('notify', Middlewares.startNotifyScene);
 
 bot.catch((err: any) => {
+    const chatId = err.on?.payload?.chat_id ?? null;
 
-    // TODO
-    globalObject.loger.fatal(err);
-    bot.telegram.sendMessage(err.on.payload.chat_id, 'Что-то пошло не так 😐').then();
+    globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on.method });
+
+    if (chatId) {
+        return bot.telegram.sendMessage(err.on.payload.chat_id, 'Неизвестная ошибка');
+    }
 });
 
 bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
