@@ -31,7 +31,6 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         let result;
         try {
             result = await axios.get('https://itunes.apple.com/search', {params: options});
-            console.log(result.status)
         } catch(e) {
             result = null;
         }
