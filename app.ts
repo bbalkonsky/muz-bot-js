@@ -52,26 +52,26 @@ const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
 bot.use(session());
 session.messageToDelete = {};
 
-bot.use(stage.middleware());
-
-bot.command('start', Middlewares.startMdlwr);
-bot.command('menu', Middlewares.getMainMenu);
-
-bot.command('version', Middlewares.sendBotVersion);
-bot.command('count', Middlewares.sendUsersCount);
-
-bot.action('contacts', Middlewares.startContactsScene);
-bot.action('platforms', Middlewares.getPlatforms);
-bot.action('settings', Middlewares.getSettings);
-// bot.action('donate', Middlewares.getDonations);
-bot.action('help', Middlewares.getHelp);
-bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
-bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
-bot.action(/state:[\w]+/, Middlewares.getStateOption);
-bot.action('back', Middlewares.getBack);
-bot.action('close', Middlewares.getClose);
-
-bot.action('notify', Middlewares.startNotifyScene);
+// bot.use(stage.middleware());
+//
+// bot.command('start', Middlewares.startMdlwr);
+// bot.command('menu', Middlewares.getMainMenu);
+//
+// bot.command('version', Middlewares.sendBotVersion);
+// bot.command('count', Middlewares.sendUsersCount);
+//
+// bot.action('contacts', Middlewares.startContactsScene);
+// bot.action('platforms', Middlewares.getPlatforms);
+// bot.action('settings', Middlewares.getSettings);
+// // bot.action('donate', Middlewares.getDonations);
+// bot.action('help', Middlewares.getHelp);
+// bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
+// bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
+// bot.action(/state:[\w]+/, Middlewares.getStateOption);
+// bot.action('back', Middlewares.getBack);
+// bot.action('close', Middlewares.getClose);
+//
+// bot.action('notify', Middlewares.startNotifyScene);
 
 bot.catch((err: any) => {
     const chatId = err.on?.payload?.chat_id ?? null;
@@ -83,8 +83,8 @@ bot.catch((err: any) => {
     }
 });
 
-bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
-bot.on('inline_query', handleInlineQuery);
+// bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
+// bot.on('inline_query', handleInlineQuery);
 
 process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
 
