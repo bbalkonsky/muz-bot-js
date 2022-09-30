@@ -115,5 +115,5 @@ async function startHooksMode(tgbot: Telegraf<TelegrafContext>) {
     await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
 
     const webhookStatus = await telegram.getWebhookInfo();
-    console.log('Webhook status', webhookStatus);
+    globalObject.loger.debug('Webhook status', webhookStatus);
 }
