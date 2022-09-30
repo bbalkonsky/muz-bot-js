@@ -86,7 +86,7 @@ bot.catch((err: any) => {
 bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
 bot.on('inline_query', handleInlineQuery);
 
-process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
+process.env.NODE_ENV !== 'production' ? startHooksMode(bot) : startPollingMode(bot);
 
 function startPollingMode(tgbot: Telegraf<TelegrafContext>) {
     globalObject.loger.debug('Starting a bot in develop mode');
@@ -114,5 +114,5 @@ async function startHooksMode(tgbot: Telegraf<TelegrafContext>) {
     await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
 
     const webhookStatus = await telegram.getWebhookInfo();
-    globalObject.loger.debug('Webhook status', webhookStatus);
+    console.log('Webhook status', webhookStatus);
 }
