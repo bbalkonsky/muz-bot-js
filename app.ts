@@ -86,7 +86,8 @@ bot.catch((err: any) => {
 bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
 bot.on('inline_query', handleInlineQuery);
 
-process.env.NODE_ENV !== 'production' ? startHooksMode(bot) : startPollingMode(bot);
+// process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
+startHooksMode(bot);
 
 function startPollingMode(tgbot: Telegraf<TelegrafContext>) {
     globalObject.loger.debug('Starting a bot in develop mode');
