@@ -63,7 +63,6 @@ bot.command('count', Middlewares.sendUsersCount);
 bot.action('contacts', Middlewares.startContactsScene);
 bot.action('platforms', Middlewares.getPlatforms);
 bot.action('settings', Middlewares.getSettings);
-// bot.action('donate', Middlewares.getDonations);
 bot.action('help', Middlewares.getHelp);
 bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
 bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
