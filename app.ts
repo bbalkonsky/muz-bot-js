@@ -82,7 +82,10 @@ bot.catch((err: any) => {
     }
 });
 
-bot.on(['message', 'channel_post'], ctx => handleMessage(ctx));
+bot.on(['message', 'channel_post'], ctx => {
+    bot.telegram.sendMessage(process.env.OWNER_ID, `Type: ${ctx.updateType}, User: ${ctx.chat.id}`)
+    return handleMessage(ctx);
+});
 bot.on('inline_query', handleInlineQuery);
 
 // process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
