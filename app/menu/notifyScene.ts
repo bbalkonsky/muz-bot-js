@@ -1,7 +1,7 @@
 import session from 'telegraf/session';
 import Scene from 'telegraf/scenes/base';
 import {SceneContextMessageUpdate} from "telegraf/typings/stage";
-import Buttons from "./buttons";
+import Buttons, { getLeaveSceneButton, getMainMenuButtons } from './buttons';
 import {Markup} from "telegraf";
 import {bot} from "../../app";
 import DataBaseController from "../database/controllers";
@@ -16,7 +16,7 @@ export default class NotifyScene {
 
     public getScene(): Scene {
         this.scene.enter(async (ctx: SceneContextMessageUpdate) => {
-            const newButtons = Buttons.getLeaveSceneButton(ctx.from?.language_code);
+            const newButtons = getLeaveSceneButton(ctx.from?.language_code);
             await ctx.editMessageText('Ну и що ты таки хочешь всем сказать?',
                 {reply_markup: Markup.inlineKeyboard(newButtons)}
             );
@@ -35,7 +35,7 @@ export default class NotifyScene {
             .catch(() => {
                 ctx.reply('Что-то пошло не по плану')
             })
-        const newButtons = Buttons.getMainMenuButtons(ctx);
+        const newButtons = getMainMenuButtons(ctx);
         await ctx.reply('well...', Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
@@ -61,7 +61,7 @@ export default class NotifyScene {
             .catch(() => {
                 ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
             });
-        const newButtons = Buttons.getMainMenuButtons(ctx);
+        const newButtons = getMainMenuButtons(ctx);
         await ctx.reply(`Отправил вот стольким людям: ${sended}`, Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }

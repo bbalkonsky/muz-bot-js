@@ -1,7 +1,7 @@
 import session from 'telegraf/session';
 import Scene from 'telegraf/scenes/base';
 import {SceneContextMessageUpdate} from "telegraf/typings/stage";
-import Buttons from "./buttons";
+import Buttons, { getLeaveSceneButton, getMainMenuButtons } from './buttons';
 import {Markup} from "telegraf";
 import {bot} from "../../app";
 const globalObject: any = global;
@@ -15,7 +15,7 @@ export default class FeedbackScene {
 
     public getScene() {
         this.scene.enter(async (ctx: SceneContextMessageUpdate) => {
-            const newButtons = Buttons.getLeaveSceneButton(ctx.from?.language_code);
+            const newButtons = getLeaveSceneButton(ctx.from?.language_code);
             await ctx.editMessageText('Следующее твое сообщение будет отправлено моему создателю ' +
                 '(только текст, без стикеров, видео и всего такого)\n' +
                 'P.S. Я вижу только ссылку на профиль, но если он скрыт, я не смогу тебе ответить.',
@@ -36,7 +36,7 @@ export default class FeedbackScene {
             .catch(() => {
                 ctx.reply('Что-то пошло не по плану')
             })
-        const newButtons = Buttons.getMainMenuButtons(ctx);
+        const newButtons = getMainMenuButtons(ctx);
         await ctx.reply('Передумаешь - пиши!', Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
@@ -57,7 +57,7 @@ export default class FeedbackScene {
             .catch(() => {
                 ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
             });
-        const newButtons = Buttons.getMainMenuButtons(ctx);
+        const newButtons = getMainMenuButtons(ctx);
         await ctx.reply('Отлично! Я все передам!', Markup.inlineKeyboard(newButtons).extra());
         return ctx.scene.leave();
     }
