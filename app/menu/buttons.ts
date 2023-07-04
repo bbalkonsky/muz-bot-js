@@ -43,15 +43,13 @@ const getPlatformsButtons = (chatPlatforms: ChatPlatforms, language = 'en'): Cal
 
 const getMainMenuButtons = (ctx): CallbackButton[][] => {
     const language = ctx.from?.language_code ?? 'en';
-    const newKeyboard = [
+    return [
         [createButton('settings', true, language)],
         [createButton('help', true, language)],
-        [Markup.urlButton(`💰 ${getLabel('donate', language)}`, process.env.YMONEY_URL)],
         [createButton('contacts', true, language)],
         [Markup.callbackButton('🤔 Сказать всем', 'notify', !Helpers.isAdmin(ctx.chat.id))],
         [createButton('close', true, language)]
     ];
-    return newKeyboard;
 };
 
 const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
@@ -63,7 +61,10 @@ const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
 
 const getHelpButtons = (language = 'en') => [
     ['0', '1', '2', '3'].map(option => createButton(`helpOption:${option}`, true, language)),
-    [createButton('back', true, language), createButton('close', true, language)]
+    [
+        createButton('back', true, language),
+        createButton('close', true, language)
+    ]
 ];
 
 const getLeaveSceneButton = (language = 'en'): CallbackButton[] => [createButton('cancel', true, language)];
