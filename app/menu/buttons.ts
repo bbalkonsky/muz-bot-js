@@ -61,9 +61,9 @@ const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
 
 const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
     return [
-        [Markup.callbackButton(`${language === 'ru' ? 'Что это вообще?' : 'Annotations'}`, 'helpOption:0')],
-        [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Annotations'}`, 'helpOption:1')],
-        [Markup.callbackButton(`${language === 'ru' ? 'Бот в группе или канале' : 'Annotations'}`, 'helpOption:2')],
+        [Markup.callbackButton(`${language === 'ru' ? 'Что это вообще?' : 'What the bot?'}`, 'helpOption:0')],
+        [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Platforms'}`, 'helpOption:1')],
+        [Markup.callbackButton(`${language === 'ru' ? 'Бот в группе или канале' : 'Bot for groups and channels'}`, 'helpOption:2')],
         [Markup.callbackButton(`${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'helpOption:3')],
         [Buttons.getBackButton(language), Buttons.getCloseButton(language)]
     ];
