@@ -25,18 +25,35 @@ const createButton = (name, status, language, prefix = '', labelInfo = {}): Call
     return Markup.callbackButton(`${emoji} ${label}`, `${prefix}:${name}`);
 };
 
+const getBackButton = (language: string = 'en'): CallbackButton => {
+    return Markup.callbackButton(`◀ ${language === 'ru' ? 'Назад' : 'Back'}`, 'back');
+}
+
+const getCloseButton = (language: string = 'en'): CallbackButton => {
+    return Markup.callbackButton(`⏹ ${language === 'ru' ? 'Закрыть' : 'Close'}`, 'close');
+}
+
 const getPlatformsButtons = (chatPlatforms: ChatPlatforms, language = 'en'): CallbackButton[][] => {
     const cols = 3;
-    const buttons = Object.keys(chatPlatforms)
+    const buttons = [];
+    Object.keys(chatPlatforms)
       .filter(platform => chatPlatforms.hasOwnProperty(platform))
-      .map((platform, index) => {
+      .forEach((platform, index) => {
           const isColumnEnd = (index + 1) % cols === 0;
-          const newButton = createButton(platform, chatPlatforms[platform], language, 'platform', Info.platforms);
-          return isColumnEnd ? [newButton] : newButton;
+          const newButton = Markup.callbackButton(
+              `${chatPlatforms[platform] ? '✅' : '❌'} ${Info.platforms[platform].alias}`, `platform:${platform}`
+          );
+
+          if (isColumnEnd) {
+              buttons.push([newButton]);
+          }
+          else {
+              buttons.push([newButton]);
+          }
       });
     buttons.push([
-        createButton('back', true, language),
-        createButton('close', true, language)
+        getBackButton(language),
+        getCloseButton(language)
     ]);
     return buttons;
 };
@@ -44,19 +61,19 @@ const getPlatformsButtons = (chatPlatforms: ChatPlatforms, language = 'en'): Cal
 const getMainMenuButtons = (ctx): CallbackButton[][] => {
     const language = ctx.from?.language_code ?? 'en';
     return [
-        [createButton('settings', true, language)],
-        [createButton('help', true, language)],
-        [createButton('contacts', true, language)],
-        [Markup.callbackButton('🤔 Сказать всем', 'notify', !Helpers.isAdmin(ctx.chat.id))],
-        [createButton('close', true, language)]
+        [Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings')],
+        [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')],
+        [Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts')],
+        [getCloseButton()]
     ];
 };
 
 const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
-    [createButton('platforms', true, language)],
-    [createButton('authorMode', state.authorMode, language, 'state')],
-    [createButton('annotations', state.annotations, language, 'state')],
-    [createButton('back', true, language), createButton('close', true, language)]
+    [Markup.callbackButton(`🎧 ${language === 'ru' ? 'Платформы' : 'Platforms'}`, 'platforms')],
+    [Markup.callbackButton(`${state.authorMode ? '✅' : '❌'} ${language === 'ru' ? 'Режим автора' : 'Author mode'}`, 'state:authorMode')],
+    [Markup.callbackButton(`${state.annotations ? '✅' : '❌'}  ${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'state:annotations')],
+    [getBackButton(language), getCloseButton(language)]
+
 ];
 
 const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
@@ -65,7 +82,7 @@ const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
         [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Platforms'}`, 'helpOption:1')],
         [Markup.callbackButton(`${language === 'ru' ? 'Бот в группе или канале' : 'Bot for groups and channels'}`, 'helpOption:2')],
         [Markup.callbackButton(`${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'helpOption:3')],
-        [Buttons.getBackButton(language), Buttons.getCloseButton(language)]
+        [getBackButton(language), getCloseButton(language)]
     ];
 };
 

@@ -1,9 +1,10 @@
 import session from 'telegraf/session';
 import Scene from 'telegraf/scenes/base';
 import {SceneContextMessageUpdate} from "telegraf/typings/stage";
-import Buttons, { getLeaveSceneButton, getMainMenuButtons } from './buttons';
+import {getLeaveSceneButton, getMainMenuButtons} from './buttons';
 import {Markup} from "telegraf";
 import {bot} from "../../app";
+
 const globalObject: any = global;
 
 

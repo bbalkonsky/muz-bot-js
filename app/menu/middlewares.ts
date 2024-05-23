@@ -1,4 +1,4 @@
-import Buttons, { getHelpButtons, getMainMenuButtons, getPlatformsButtons, getSettingsButtons } from './buttons';
+import {getHelpButtons, getMainMenuButtons, getPlatformsButtons, getSettingsButtons} from './buttons';
 import {Markup} from "telegraf";
 import {SceneContextMessageUpdate} from "telegraf/typings/stage";
 import DataBaseController from "../database/controllers";
@@ -6,11 +6,9 @@ import Info from "../helpers/info";
 import {getRepository} from "typeorm";
 import {Chat} from "../database/entities/Chat";
 import {TelegrafContext} from "telegraf/typings/context";
-import { version } from '../../package.json'
+import {version} from '../../package.json'
 import Helpers from "../helpers/helpers";
-import axios from "axios";
-import {getSongLinksButtons, getSongName, getSongThumb, replaceUnderline} from "../helpers/songHandler";
-import {bot} from "../../app";
+
 const globalObject: any = global;
 
 
@@ -28,7 +26,9 @@ export default class Middlewares {
     public static async getMainMenu(ctx: TelegrafContext) {
         await Middlewares.getOrCreateChat(ctx.chat.id, ctx.chat.type);
         await ctx.deleteMessage();
+        console.log(1)
         const newButtons = getMainMenuButtons(ctx);
+        console.log(2)
         return ctx.reply('Привет! Чем могу помочь?', Markup.inlineKeyboard(newButtons).extra());
     }
 
