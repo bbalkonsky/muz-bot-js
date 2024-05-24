@@ -33,61 +33,62 @@ export const bot = new Telegraf(
     } as TOptions
 );
 
-createConnection({
-    type: 'sqlite',
-    database: process.env.DBASE_PATH,
-    entities: [Chat, ChatState, ChatPlatforms], // TODO
-    synchronize: true
-})
-    .then()
-    .catch(() => {
-        globalObject.loger.fatal('Cannot establish connection with database');
-    });
+// createConnection({
+//     type: 'sqlite',
+//     database: process.env.DBASE_PATH,
+//     entities: [Chat, ChatState, ChatPlatforms], // TODO
+//     synchronize: true
+// })
+//     .then()
+//     .catch(() => {
+//         globalObject.loger.fatal('Cannot establish connection with database');
+//     });
 
 // Create scene manager
-const feedbackScene = new FeedbackScene();
-const notifyScene = new NotifyScene();
-const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
+// const feedbackScene = new FeedbackScene();
+// const notifyScene = new NotifyScene();
+// const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
 
-bot.use(session());
-session.messageToDelete = {};
+// bot.use(session());
+// session.messageToDelete = {};
 
-bot.use(stage.middleware());
+// bot.use(stage.middleware());
 
 bot.command('start', Middlewares.startMdlwr);
-bot.command('menu', Middlewares.getMainMenu);
-
-bot.command('version', Middlewares.sendBotVersion);
-bot.command('count', Middlewares.sendUsersCount);
-
-bot.action('contacts', Middlewares.startContactsScene);
-bot.action('platforms', Middlewares.getPlatforms);
-bot.action('settings', Middlewares.getSettings);
-bot.action('help', Middlewares.getHelp);
-bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
-bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
-bot.action(/state:[\w]+/, Middlewares.getStateOption);
-bot.action('back', Middlewares.getBack);
-bot.action('close', Middlewares.getClose);
-
-bot.action('notify', Middlewares.startNotifyScene);
-
-bot.catch((err: any) => {
-    const chatId = err.on?.payload?.chat_id ?? null;
-
-    globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on.method });
-
-    if (chatId) {
-        return bot.telegram.sendMessage(err.on.payload.chat_id, 'Неизвестная ошибка');
-    }
-});
-
-bot.on(['message', 'channel_post'], ctx => {
-    return handleMessage(ctx);
-});
-bot.on('inline_query', handleInlineQuery);
-
-// process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
+// bot.command('menu', Middlewares.getMainMenu);
+bot.command('menu', ctx => ctx.reply('HEY!'));
+//
+// bot.command('version', Middlewares.sendBotVersion);
+// bot.command('count', Middlewares.sendUsersCount);
+//
+// bot.action('contacts', Middlewares.startContactsScene);
+// bot.action('platforms', Middlewares.getPlatforms);
+// bot.action('settings', Middlewares.getSettings);
+// bot.action('help', Middlewares.getHelp);
+// bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
+// bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
+// bot.action(/state:[\w]+/, Middlewares.getStateOption);
+// bot.action('back', Middlewares.getBack);
+// bot.action('close', Middlewares.getClose);
+//
+// bot.action('notify', Middlewares.startNotifyScene);
+//
+// bot.catch((err: any) => {
+//     const chatId = err.on?.payload?.chat_id ?? null;
+//
+//     globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on.method });
+//
+//     if (chatId) {
+//         return bot.telegram.sendMessage(err.on.payload.chat_id, 'Неизвестная ошибка');
+//     }
+// });
+//
+// bot.on(['message', 'channel_post'], ctx => {
+//     return handleMessage(ctx);
+// });
+// bot.on('inline_query', handleInlineQuery);
+//
+// // process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
 
 startPollingMode(bot);
 
