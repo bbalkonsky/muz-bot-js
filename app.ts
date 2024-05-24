@@ -45,18 +45,18 @@ createConnection({
     });
 
 // Create scene manager
-// const feedbackScene = new FeedbackScene();
-// const notifyScene = new NotifyScene();
-// const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
+const feedbackScene = new FeedbackScene();
+const notifyScene = new NotifyScene();
+const stage = new Stage([feedbackScene.getScene(), notifyScene.getScene()])
 
-// bot.use(session());
-// session.messageToDelete = {};
+bot.use(session());
+session.messageToDelete = {};
 
-// bot.use(stage.middleware());
+bot.use(stage.middleware());
 
 bot.command('start', Middlewares.startMdlwr);
 bot.command('menu', Middlewares.getMainMenu);
-//
+
 bot.command('version', Middlewares.sendBotVersion);
 bot.command('count', Middlewares.sendUsersCount);
 
