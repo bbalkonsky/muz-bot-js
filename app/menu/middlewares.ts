@@ -26,9 +26,7 @@ export default class Middlewares {
     public static async getMainMenu(ctx: TelegrafContext) {
         await Middlewares.getOrCreateChat(ctx.chat.id, ctx.chat.type);
         await ctx.deleteMessage();
-        console.log(1)
         const newButtons = getMainMenuButtons(ctx);
-        console.log(2)
         return ctx.reply('Привет! Чем могу помочь?', Markup.inlineKeyboard(newButtons).extra());
     }
 
