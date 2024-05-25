@@ -70,7 +70,7 @@ const getMainMenuButtons = (ctx): CallbackButton[][] => {
 
 const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
     [Markup.callbackButton(`🎧 ${language === 'ru' ? 'Платформы' : 'Platforms'}`, 'platforms')],
-    [Markup.callbackButton(`${state.authorMode ? '✅' : '❌'} ${language === 'ru' ? 'Режим автора' : 'Author mode'}`, 'state:authorMode')],
+    [Markup.callbackButton(`${state.authorMode ? '✅' : '❌'} ${language === 'ru' ? 'Читать сообщения' : 'Read messages'}`, 'state:authorMode')],
     [Markup.callbackButton(`${state.annotations ? '✅' : '❌'}  ${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'state:annotations')],
     [getBackButton(language), getCloseButton(language)]
 
@@ -82,6 +82,7 @@ const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
         [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Platforms'}`, 'helpOption:1')],
         [Markup.callbackButton(`${language === 'ru' ? 'Бот в группе или канале' : 'Bot for groups and channels'}`, 'helpOption:2')],
         [Markup.callbackButton(`${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'helpOption:3')],
+        [Markup.callbackButton(`${language === 'ru' ? 'Читать сообщения' : 'Read messages'}`, 'helpOption:4')],
         [getBackButton(language), getCloseButton(language)]
     ];
 };
