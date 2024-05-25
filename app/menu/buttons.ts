@@ -63,7 +63,7 @@ const getMainMenuButtons = (ctx): CallbackButton[][] => {
     return [
         [Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings')],
         [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')],
-        [Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts')],
+        // [Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts')],
         [getCloseButton()]
     ];
 };
