@@ -63,7 +63,7 @@ const getMainMenuButtons = (ctx): CallbackButton[][] => {
     return [
         [Markup.callbackButton(`⚙ ${language === 'ru' ? 'Настройки' : 'Chat settings'}`, 'settings')],
         [Markup.callbackButton(`⁉ ${language === 'ru' ? 'Помощь' : 'Get help'}`, 'help')],
-        // [Markup.callbackButton(`✏ ${language === 'ru' ? 'Написать автору' : 'Contacts'}`, 'contacts')],
+        [Markup.callbackButton(`✏ ${language === 'ru' ? 'Задать вопрос' : 'Feedback'}`, 'ask')],
         [getCloseButton()]
     ];
 };
@@ -79,6 +79,7 @@ const getSettingsButtons = (state, language = 'en'): CallbackButton[][] => [
 const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
     return [
         [Markup.callbackButton(`${language === 'ru' ? 'Что это вообще?' : 'What the bot?'}`, 'helpOption:0')],
+        [Markup.callbackButton(`${language === 'ru' ? 'Задать вопрос' : 'Feedback'}`, 'helpOption:5')],
         [Markup.callbackButton(`${language === 'ru' ? 'Список платформ' : 'Platforms'}`, 'helpOption:1')],
         [Markup.callbackButton(`${language === 'ru' ? 'Бот в группе или канале' : 'Bot for groups and channels'}`, 'helpOption:2')],
         [Markup.callbackButton(`${language === 'ru' ? 'Аннотации' : 'Annotations'}`, 'helpOption:3')],
