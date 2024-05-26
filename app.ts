@@ -65,7 +65,7 @@ bot.action('ask', Middlewares.feedbackAction);
 bot.catch((err: any) => {
     const chatId = err.on?.payload?.chat_id ?? null;
 
-    globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on.method });
+    globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on?.method });
 
     if (chatId) {
         return bot.telegram.sendMessage(err.on.payload.chat_id, 'Неизвестная ошибка');
