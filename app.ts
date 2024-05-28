@@ -79,7 +79,7 @@ bot.on('inline_query', handleInlineQuery);
 
 // process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
 
-startHooksMode(bot);
+startPollingMode(bot);
 
 function startPollingMode(tgbot: Telegraf<TelegrafContext>) {
     globalObject.loger.debug('Starting a bot in develop mode');
