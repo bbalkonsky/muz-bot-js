@@ -33,12 +33,14 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
             result = await axios.get('https://itunes.apple.com/search', {params: options});
         } catch(e) {
             result = null;
+            return answerInlineQuery([]);
         }
 
         if (result?.data?.resultCount) {
             odesliOptionsUrl = result?.data?.results.slice(0, 5).map(x => x.trackViewUrl ?? x.collectionViewUrl) ?? [];
         } else {
             return;
+            return answerInlineQuery([]);
         }
     }
 
@@ -54,6 +56,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
 
     if (!response) {
         return;
+        return answerInlineQuery([]);
     }
 
     await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
@@ -71,6 +74,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
             res.push(generateInlineSongItem(song, chatPlatforms));
         } catch (e) {
             return;
+            return answerInlineQuery([]);
         }
     }
 
@@ -79,7 +83,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         if (globalObject.inlineCounter.id !== chatId) {
             globalObject.inlineCounter = { id: chatId, time: Date.now() };
             sendConsoleLog(chatId);
-        } else if (Date.now() - globalObject.inlineCounter.time > 60000) { // one minute
+        }  else if (Date.now() - globalObject.inlineCounter.time > 60000) { // one minute
             globalObject.inlineCounter.time = Date.now();
             sendConsoleLog(chatId);
         }
@@ -87,7 +91,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
 
     return answerInlineQuery(res, {
         switch_pm_text: 'Перейти в диалог',
-        switch_pm_parameter: 'nope'
+        switch_pm_parameter: 'nope',
     });
 }
 
@@ -107,13 +111,13 @@ const generateInlineSongItem = (song: any, chatPlatforms): any => {
     const firstEntity = song.entitiesByUniqueId[song.entityUniqueId];
 
     return {
-        id: Math.random() * Math.random(),
+        id: createRandomString(),
         type: 'article',
-        thumb_url: firstEntity.thumbnailUrl,
-        title: firstEntity.title,
-        description: firstEntity.artistName,
+        thumb_url: firstEntity.thumbnailUrl ?? '',
+        title: firstEntity.title ?? '',
+        description: firstEntity.artistName ?? '',
         // @ts-ignore
-        url: Object.values(song.linksByPlatform)[0].url,
+        url: Object.values(song.linksByPlatform)[0]?.url ?? '',
         hide_url: true,
         reply_markup: Markup.inlineKeyboard(buttons),
         input_message_content: {
@@ -132,5 +136,15 @@ const sendConsoleLog = (chatId: number): void => {
         })
     );
 }
+
+const createRandomString = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < 20; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 
 export { handleInlineQuery };
