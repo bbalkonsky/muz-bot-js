@@ -54,13 +54,18 @@ bot.command('count', Middlewares.sendUsersCount);
 
 bot.action('platforms', Middlewares.getPlatforms);
 bot.action('settings', Middlewares.getSettings);
+bot.action('donate', Middlewares.getDonateOptions);
 bot.action('help', Middlewares.getHelp);
 bot.action(/helpOption:[0-9]/, Middlewares.getHelpOption);
+bot.action(/donateOption:[0-9]*/, Middlewares.getDonateOption);
 bot.action(/platform:[\w]+/, Middlewares.getPlatformOption);
 bot.action(/state:[\w]+/, Middlewares.getStateOption);
 bot.action('back', Middlewares.getBack);
 bot.action('close', Middlewares.getClose);
 bot.action('ask', Middlewares.feedbackAction);
+
+bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true));
+bot.on('successful_payment', (ctx) => ctx.reply('Спасибо за поддержку!'));
 
 bot.catch((err: any) => {
     const chatId = err.on?.payload?.chat_id ?? null;

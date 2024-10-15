@@ -1,4 +1,4 @@
-import {getHelpButtons, getMainMenuButtons, getPlatformsButtons, getSettingsButtons} from './buttons';
+import {getDonateButtons, getHelpButtons, getMainMenuButtons, getPlatformsButtons, getSettingsButtons} from './buttons';
 import Telegraf, {Markup} from "telegraf";
 import DataBaseController from "../database/controllers";
 import Info from "../helpers/info";
@@ -49,7 +49,7 @@ export default class Middlewares {
     public static async getHelpOption(ctx: TelegrafContext) {
         const newButtons = getHelpButtons(ctx.from?.language_code);
         const helpCode = ctx.update.callback_query?.data.split(':')[1];
-        const helpText = Info.instRu[helpCode];
+        const helpText = ctx.from?.language_code === 'ru' ? Info.instRu[helpCode] : Info.instEn[helpCode];
         await ctx.editMessageText(helpText, {reply_markup: Markup.inlineKeyboard(newButtons)})
             .then()
             .catch(err => {
@@ -161,5 +161,24 @@ export default class Middlewares {
             ctx.reply('Чтобы написать администратору, начни свое сообщение с команды /ask' +
                 '\nСообщение будет переслано, но если у тебя закрытый аккаунт, ответить тебе не получится');
         }
+    }
+
+    public static async getDonateOptions(ctx: TelegrafContext) {
+        const newButtons = getDonateButtons(ctx.from?.language_code);
+        return ctx.editMessageText('Поддержать', {reply_markup: Markup.inlineKeyboard(newButtons)});
+    }
+
+    public static async getDonateOption(ctx: TelegrafContext) {
+        const amount = ctx.update.callback_query?.data.split(':')[1];
+        ctx.replyWithInvoice({
+            currency: 'XTR',
+            description: 'Buy Bot a Beer 🍺',
+            title: 'Donate',
+            prices: [{ label: 'One beer', amount: parseInt(amount, 10) }],
+            // @ts-ignore
+            payload: {userId: 'user'},
+            provider_token: ''
+        });
+        ctx.deleteMessage();
     }
 }
