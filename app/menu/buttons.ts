@@ -92,7 +92,6 @@ const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
 const getDonateButtons = (language: string = 'en'): CallbackButton[][] => {
     return [
         [Markup.callbackButton('100 ⭐', 'donateOption:100')],
-        [Markup.callbackButton('1 ⭐', 'donateOption:1')],
         [Markup.callbackButton('200 🍺', 'donateOption:200')],
         [Markup.callbackButton('500 🍾', 'donateOption:500')],
         [Markup.callbackButton('1000 🤩', 'donateOption:1000')],
