@@ -35,8 +35,8 @@ export default class Info {
             link: ['tidal.com']
         },
         vk: {
-            alias: 'VK',
-            link: ['vk.com']
+            alias: 'VKontakte',
+            link: ['vkontakte.ru']
         },
         // 'pandora': {alias: 'Pandora', link: 'pandora.com'},
         // 'napster': {alias: 'Napster', link: 'napster.com'},
