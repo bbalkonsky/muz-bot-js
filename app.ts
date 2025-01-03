@@ -70,7 +70,13 @@ bot.on('successful_payment', (ctx) => ctx.reply('Спасибо за подде�
 bot.catch((err: any) => {
     const chatId = err.on?.payload?.chat_id ?? null;
 
-    globalObject.loger.error('Unhandled error', { code: err.code, description: err.description, method: err.on?.method });
+    if (err.on?.method !== 'answerInlineQuery') {
+        globalObject.loger.error('Unhandled error', {
+            code: err.code,
+            description: err.description,
+            method: err.on?.method
+        });
+    }
 
     if (chatId) {
         return bot.telegram.sendMessage(err.on.payload.chat_id, 'Неизвестная ошибка');
@@ -81,6 +87,15 @@ bot.on(['message', 'channel_post'], ctx => {
     return handleMessage(ctx);
 });
 bot.on('inline_query', handleInlineQuery);
+bot.on('chosen_inline_result', ctx =>
+    console.log(
+        JSON.stringify({
+            messageType: 'message',
+            chatId: ctx.update.chosen_inline_result.from.id,
+            chatType: 'inline',
+        })
+    )
+);
 
 // process.env.NODE_ENV === 'production' ? startHooksMode(bot) : startPollingMode(bot);
 

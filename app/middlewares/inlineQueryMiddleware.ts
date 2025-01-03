@@ -8,13 +8,17 @@ import Middlewares from "../menu/middlewares";
 
 const globalObject: any = global;
 const urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+const answerExtra = {
+    switch_pm_text: 'Ничего не найдено',
+    switch_pm_parameter: 'null',
+};
 
 const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     const { inlineQuery, answerInlineQuery } = ctx;
 
     const query = inlineQuery.query;
     if (!query) {
-        return answerInlineQuery([]);
+        return answerInlineQuery([], answerExtra);
     }
 
     let response;
@@ -33,14 +37,13 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
             result = await axios.get('https://itunes.apple.com/search', {params: options});
         } catch(e) {
             result = null;
-            return answerInlineQuery([]);
+            return answerInlineQuery([], answerExtra);
         }
 
         if (result?.data?.resultCount) {
             odesliOptionsUrl = result?.data?.results.slice(0, 5).map(x => x.trackViewUrl ?? x.collectionViewUrl) ?? [];
         } else {
-            return;
-            return answerInlineQuery([]);
+            return answerInlineQuery([], answerExtra);
         }
     }
 
@@ -55,8 +58,7 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
     }
 
     if (!response) {
-        return;
-        return answerInlineQuery([]);
+        return answerInlineQuery([], answerExtra);
     }
 
     await Middlewares.getOrCreateChat(ctx.update.inline_query.from.id, 'private');
@@ -73,25 +75,13 @@ const handleInlineQuery = async (ctx: TelegrafContext): Promise<any> => {
         try {
             res.push(generateInlineSongItem(song, chatPlatforms));
         } catch (e) {
-            return;
-            return answerInlineQuery([]);
-        }
-    }
-
-    const chatId = inlineQuery.from.id;
-    if (!Helpers.isAdmin(chatId)) {
-        if (globalObject.inlineCounter.id !== chatId) {
-            globalObject.inlineCounter = { id: chatId, time: Date.now() };
-            sendConsoleLog(chatId);
-        }  else if (Date.now() - globalObject.inlineCounter.time > 60000) { // one minute
-            globalObject.inlineCounter.time = Date.now();
-            sendConsoleLog(chatId);
+            return answerInlineQuery([], answerExtra);
         }
     }
 
     return answerInlineQuery(res, {
         switch_pm_text: 'Перейти в диалог',
-        switch_pm_parameter: 'nope',
+        switch_pm_parameter: 'null',
     });
 }
 
@@ -125,16 +115,6 @@ const generateInlineSongItem = (song: any, chatPlatforms): any => {
             parse_mode: 'Markdown'
         }
     }
-}
-
-const sendConsoleLog = (chatId: number): void => {
-    console.log(
-        JSON.stringify({
-            messageType: 'message',
-            chatId,
-            chatType: 'inline',
-        })
-    );
 }
 
 const createRandomString = () => {
