@@ -9,7 +9,6 @@ import Middlewares from '../menu/middlewares';
 import {Song} from '../models/song';
 import {TelegrafContext} from 'telegraf/typings/context';
 import Helpers from "./helpers";
-const globalObject: any = global;
 
 const handleMessage = async (ctx: TelegrafContext) => {
   const message = ctx.updateType === 'message' ?
@@ -42,7 +41,6 @@ const handleMessage = async (ctx: TelegrafContext) => {
     }
 
     if (!Helpers.isAdmin(chatId)) {
-      // globalObject.loger.info('message',
       console.log(
           JSON.stringify({
             messageType: 'message',

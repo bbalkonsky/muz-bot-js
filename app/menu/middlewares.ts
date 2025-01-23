@@ -86,7 +86,7 @@ export default class Middlewares {
         return ctx.deleteMessage()
             .then()
             .catch(() => {
-                ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
+                ctx.editMessageText('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
             });
     }
 

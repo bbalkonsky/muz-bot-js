@@ -60,7 +60,7 @@ export default class NotifyScene {
         await ctx.deleteMessage()
             .then()
             .catch(() => {
-                ctx.reply('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
+                ctx.editMessageText('Я не могу удалить это сообщение.\nВероятнее всего, оно слишком старое.');
             });
         const newButtons = getMainMenuButtons(ctx);
         await ctx.reply(`Отправил вот стольким людям: ${sended}`, Markup.inlineKeyboard(newButtons).extra());
