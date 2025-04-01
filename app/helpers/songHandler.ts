@@ -164,7 +164,14 @@ const getSongLinksButtons =
       }
     }
   });
-  if (tempArray.length) buttons.push(tempArray);
+  if (tempArray.length) {
+    buttons.push(tempArray);
+  }
+
+  if (buttons.length && buttons[buttons.length - 1].length < colsNumber) {
+    buttons[buttons.length - 1].push(Markup.callbackButton(`⭐️ Donate`, 'donateBeggin'));
+  }
+
   return buttons;
 }
 

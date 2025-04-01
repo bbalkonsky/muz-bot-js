@@ -89,14 +89,20 @@ const getHelpButtons = (language: string = 'en'): CallbackButton[][] => {
     ];
 };
 
-const getDonateButtons = (language: string = 'en'): CallbackButton[][] => {
-    return [
+const getDonateButtons = (language: string = 'en', includeBackButton: boolean = true): CallbackButton[][] => {
+    const result = [
         [Markup.callbackButton('100 ⭐', 'donateOption:100')],
         [Markup.callbackButton('200 🍺', 'donateOption:200')],
         [Markup.callbackButton('500 🍾', 'donateOption:500')],
         [Markup.callbackButton('1000 🤩', 'donateOption:1000')],
-        [getBackButton(language), getCloseButton(language)]
+        [getCloseButton(language)]
     ];
+
+    if (includeBackButton) {
+        result[4].unshift(getBackButton(language));
+    }
+
+    return result;
 };
 
 const getLeaveSceneButton = (language = 'en'): CallbackButton[] => [createButton('cancel', true, language)];

@@ -164,8 +164,24 @@ export default class Middlewares {
     }
 
     public static async getDonateOptions(ctx: TelegrafContext) {
-        const newButtons = getDonateButtons(ctx.from?.language_code);
-        return ctx.editMessageText('Поддержать', {reply_markup: Markup.inlineKeyboard(newButtons)});
+        const language = ctx.from?.language_code ?? 'ru';
+        const newButtons = getDonateButtons(language);
+        return ctx.editMessageText(
+            `${language === 'ru' ? 'Поддержать Бота 🤩' : 'Support the Bot 🤩'}`,
+            {reply_markup: Markup.inlineKeyboard(newButtons)}
+        );
+    }
+
+    public static async getBegginDonateOptions(ctx: TelegrafContext) {
+        const language = ctx.from?.language_code ?? 'ru';
+        const newButtons = getDonateButtons(language, false);
+        return ctx.replyWithPhoto(
+            {source: 'app/public/ebat.jpg'},
+            {
+                reply_markup: Markup.inlineKeyboard(newButtons),
+                caption: `${language === 'ru' ? 'Поддержать Бота 🤩' : 'Support the Bot 🤩'}`
+            }
+        );
     }
 
     public static async getDonateOption(ctx: TelegrafContext) {
