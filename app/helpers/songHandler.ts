@@ -81,7 +81,7 @@ const handleMessage = async (ctx: TelegrafContext) => {
       // }
       await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
 
-      if (ctx.from?.id && ctx.from.id > 0) {
+      if (ctx.chat?.type && ctx.chat.type === 'private') {
         await ctx.replyWithMarkdown(
             '⭐ Thank the author ⭐️',
             Markup.inlineKeyboard([Markup.callbackButton(`⭐️ Donate`, 'donateBeggin')]).extra()
