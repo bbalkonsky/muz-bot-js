@@ -7,11 +7,8 @@ import {Chat} from "../database/entities/Chat";
 import {TelegrafContext} from "telegraf/typings/context";
 import {version} from '../../package.json'
 import Helpers from "../helpers/helpers";
+import { SceneContextMessageUpdate } from "telegraf/typings/stage";
 
-const globalObject: any = global;
-
-
-// TODO
 export default class Middlewares {
     static async startMdlwr(ctx) {
         const isUserExist = Middlewares.getOrCreateChat(ctx.chat.id, ctx.chat.type);
@@ -139,27 +136,13 @@ export default class Middlewares {
         return null;
     }
 
-    public static async sendFeedback(ctx: TelegrafContext, bot: Telegraf<TelegrafContext>) {
-        if (ctx.chat?.type === 'private') {
-            const messageToSend = ctx.update.message.text.slice(5);
-            if (!!messageToSend) {
-                try {
-                    await bot.telegram.forwardMessage(process.env.OWNER_ID, ctx.chat.id, ctx.message.message_id);
-                    ctx.reply('Сообщение успешно переслано');
-                } catch (e) {
-                    ctx.reply('Что-то пошло не так, попробуйте повторить');
-                }
-            } else {
-                ctx.reply('Чтобы написать администратору, начни свое сообщение с команды /ask' +
-                    '\nСообщение будет переслано, но если у тебя закрытый аккаунт, ответить тебе не получится');
-            }
-        }
-    }
-
     public static async feedbackAction(ctx: TelegrafContext) {
+        const language = ctx.from?.language_code ?? 'ru';
         if (ctx.chat?.type === 'private') {
-            ctx.reply('Чтобы написать администратору, начни свое сообщение с команды /ask' +
-                '\nСообщение будет переслано, но если у тебя закрытый аккаунт, ответить тебе не получится');
+            ctx.reply(`${language === 'ru'
+                ? 'Задать вопрос или получить помощь можно через сообщение в канале @muzShareNews'
+                : 'You can ask a question or get help by sending a message to @muzShareNews channel'}`
+            )
         }
     }
 
@@ -196,5 +179,11 @@ export default class Middlewares {
             provider_token: ''
         });
         ctx.deleteMessage();
+    }
+
+    public static async startNotifyScene(ctx: SceneContextMessageUpdate): Promise<any> {
+        return Helpers.isAdmin(ctx.chat.id)
+            ? ctx.scene.enter('notifyScene')
+            : null;
     }
 }

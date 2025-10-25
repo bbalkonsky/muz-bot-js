@@ -47,7 +47,7 @@ session.messageToDelete = {};
 
 bot.command('start', Middlewares.startMdlwr);
 bot.command('menu', Middlewares.getMainMenu);
-bot.command('ask', ctx => Middlewares.sendFeedback(ctx, bot));
+bot.command('ask', Middlewares.feedbackAction);
 
 bot.command('version', Middlewares.sendBotVersion);
 bot.command('count', Middlewares.sendUsersCount);

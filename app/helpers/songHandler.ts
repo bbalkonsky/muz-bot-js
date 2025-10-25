@@ -9,6 +9,7 @@ import Middlewares from '../menu/middlewares';
 import {Song} from '../models/song';
 import {TelegrafContext} from 'telegraf/typings/context';
 import Helpers from "./helpers";
+import { getDonateButtons } from "../menu/buttons";
 
 const handleMessage = async (ctx: TelegrafContext) => {
   const message = ctx.updateType === 'message' ?
@@ -82,10 +83,16 @@ const handleMessage = async (ctx: TelegrafContext) => {
       await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
 
       if (ctx.chat?.type && ctx.chat.type === 'private') {
-        await ctx.replyWithMarkdown(
-            '⭐ Thank the author ⭐️',
-            Markup.inlineKeyboard([Markup.callbackButton(`⭐️ Donate`, 'donateBeggin')]).extra()
-        );
+        const language = ctx.from?.language_code ?? 'ru';
+
+        setTimeout(async () => {
+          await ctx.replyWithMarkdown(
+              `${language === 'ru'
+                  ? '⭐ Кстати говоря, ты можешь поблагодарить создателя Бота за возможность удобно делиться музыкой ⭐️'
+                  : '⭐ By the way, you can support the creator of the Bot for the convenient sharing of music ⭐️'}`,
+              Markup.inlineKeyboard(getDonateButtons(ctx.from?.language_code ?? 'ru', false)).extra(),
+          )
+        }, 1000)
       };
     }
   }

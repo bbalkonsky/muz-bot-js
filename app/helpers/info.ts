@@ -4,7 +4,7 @@ export default class Info {
     static platforms: PlatformList = {
         spotify: {
             alias: 'Spotify',
-            link: ['spotify.com']
+            link: ['spotify.com', 'spotify.link']
         },
         appleMusic: {
             alias: 'Apple Music',
@@ -55,8 +55,7 @@ export default class Info {
         3: 'Опция "Аннотации" отвечает за отображение текста, введенного перед ссылкой на песню',
         4: 'Кнопка "Читать сообщения" может выключить возможность Бота читать все сообщения и автоматически отвечать на них' +
             'в каналах и группах',
-        5: 'Чтобы написать администратору, начни свое сообщение с команды /ask' +
-            '\nСообщение будет переслано, но если у тебя закрытый аккаунт, ответить тебе не получится'
+        5: 'Задать вопрос или получить помощь можно через сообщение в канале @muzShareNews'
     }
 
     static instEn = {
@@ -68,7 +67,6 @@ export default class Info {
         3: 'The \'Annotations\' option controls the display of text entered before the song link.',
         4: 'The \'Read messages\' button can disable the Bot\'s ability to read all messages and automatically respond ' +
             'to them in channels and groups.',
-        5: 'To write to the administrator, start your message with the /ask command. ' +
-            'The message will be forwarded, but if you have a private account, it won\'t be possible to reply to you.'
+        5: 'You can ask a question or get help by sending a message to @muzShareNews channel.'
     }
 }
