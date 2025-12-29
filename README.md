@@ -2,7 +2,7 @@
 # Telegram MuzShareBot
 ### Unofficial telegram bot for [Odesli](https://odesli.co) (former SongLink) service
 
-## Why
+## Why?
 
 If all your friends listen to music on different streaming services (Apple music, spotify, etc.), but you want to share music with them without unnecessary difficulties - this bot is for you
 
