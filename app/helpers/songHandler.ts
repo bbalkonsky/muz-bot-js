@@ -1,15 +1,14 @@
 import Info from './info';
-import axios from 'axios';
 import {UrlButton} from 'telegraf/typings/markup';
 import {Markup} from 'telegraf';
 import {ChatPlatforms} from '../database/entities/ChatPlatforms';
 import {User} from 'telegraf/typings/telegram-types';
 import DataBaseController from '../database/controllers';
 import Middlewares from '../menu/middlewares';
-import {Song} from '../models/song';
 import {TelegrafContext} from 'telegraf/typings/context';
 import Helpers from "./helpers";
 import { getDonateButtons } from "../menu/buttons";
+import {resolve} from "../lib/index";
 
 const handleMessage = async (ctx: TelegrafContext) => {
   const message = ctx.updateType === 'message' ?
@@ -82,7 +81,7 @@ const handleMessage = async (ctx: TelegrafContext) => {
       // }
       await ctx.replyWithMarkdown(replyText, Markup.inlineKeyboard(buttons).extra());
 
-      if (ctx.chat?.type && ctx.chat.type === 'private') {
+      if (ctx.chat?.type && ctx.chat.type === 'private' && Math.random() > 0.8) {
         const language = ctx.from?.language_code ?? 'ru';
 
         setTimeout(async () => {
@@ -121,52 +120,58 @@ const getParsedMessage = (message: any): {
   }
 }
 
-const getSongInfoOrReplyError = (url: string, ctx: TelegrafContext): any => {
-  const options = {
-    url,
-    key: process.env.ODESLI_TOKEN,
-  };
-
-  return axios.get(process.env.ODESLI_API_URL, {params: options})
-      .then((res) => res.data)
-      .catch((err) => {
-        if (err.response.status) {
-          ctx.reply('Ничего не нашел 😐').then();
-        } else {
-          ctx.reply('Что-то пошло не так').then();
-        }
-      });
+const getSongInfoOrReplyError = async (url: string, ctx: TelegrafContext): Promise<any> => {
+  try {
+    return await resolve(url);
+  } catch (err) {
+    if (err.status) {
+      ctx.reply('Ничего не нашел 😐').then();
+    } else {
+        console.error(err);
+      ctx.reply('Что-то пошло не так').then();
+    }
+    return null;
+  }
 }
 
 // TODO
-const getSongName = (response: Song): {title: string, artist: string} => {
-  const entity = response.entitiesByUniqueId[response.entityUniqueId];
-  return {title: entity.title, artist: entity.artistName};
+const getSongName = (response: any): {title: string, artist: string} => {
+  return {title: response.source.title, artist: response.source.artist};
 }
 
 // TODO
-const getSongThumb = (response: Song): string => {
-  return response.entitiesByUniqueId[response.entityUniqueId].thumbnailUrl;
+const getSongThumb = (response: any): string => {
+  return response.source.coverUrl;
 }
 
 // TODO
 const getSongLinksButtons =
-    (response: Song, chatPlatforms: ChatPlatforms, songName: {title: string, artist: string}): UrlButton[][] => {
+    (response: any, chatPlatforms: ChatPlatforms, songName: {title: string, artist: string}): UrlButton[][] => {
   const buttons = [];
   let tempArray = [];
   let counter = 1;
   const colsNumber = 3;
-  const linksByPlatform = response.linksByPlatform;
-  if (chatPlatforms.vk) {
-    const songFullName = `${songName.artist} - ${songName.title}`;
-    linksByPlatform.vk = {url: getVkLink(songFullName)};
+
+  const linksByPlatform: Record<string, {url: string}> = {
+    [response.source.platform]: {url: response.source.url},
+  };
+  for (const [p, data] of Object.entries(response.results) as [string, any][]) {
+    if (data && !data.error) {
+      linksByPlatform[p] = {url: data.url};
+    }
   }
-  const keys = Object.keys(response.linksByPlatform);
+
+  // if (chatPlatforms.vk) {
+  //   const songFullName = `${songName.artist} - ${songName.title}`;
+  //   linksByPlatform.vk = {url: getVkLink(songFullName)};
+  // }
+
+  const keys = Object.keys(linksByPlatform);
   keys.forEach((key) => {
     if (chatPlatforms[key]) {
       const newButton = Markup.urlButton(
           `${Info.platforms[key].alias}`,
-          `${response.linksByPlatform[key].url}`,
+          `${linksByPlatform[key].url}`,
       );
       tempArray.push(newButton);
       if (counter < colsNumber) {
