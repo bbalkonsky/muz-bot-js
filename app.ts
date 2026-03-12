@@ -13,7 +13,6 @@ import handleMessage from './app/helpers/songHandler';
 import {Logger} from "tslog";
 import {TOptions} from "telegraf/typings/telegraf";
 import {handleInlineQuery} from "./app/middlewares/inlineQueryMiddleware";
-import {TelegramOptions} from "telegraf/typings/telegram";
 
 dotenv.config()
 const globalObject: any = global;
@@ -26,8 +25,9 @@ globalObject.loger = logger;
 export const bot = new Telegraf(
     process.env.TELEGRAM_TOKEN,
     {
+        username: process.env.BOT_USERNAME,
         channelMode: true,
-    }
+    } as TOptions
 );
 
 createConnection({
@@ -108,25 +108,25 @@ function startPollingMode(tgbot: Telegraf<TelegrafContext>) {
 }
 
 async function startHooksMode(tgbot: Telegraf<TelegrafContext>) {
-    // globalObject.loger.debug('Starting a bot in production mode');
-    // const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
-    //
-    // await telegram.deleteWebhook();
-    //
-    // const tlsOptions = {
-    //     key: fs.readFileSync(process.env.PATH_TO_KEY),
-    //     cert: fs.readFileSync(process.env.PATH_TO_CERT)
-    // };
-    //
-    // await tgbot.telegram.setWebhook(
-    //     `${process.env.WEBHOOK_URL}:${process.env.WEBHOOK_PORT}/${process.env.TELEGRAM_TOKEN}`,
-    //     {
-    //         source: 'cert.pem'
-    //     }
-    // );
-    //
-    // await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
-    //
-    // const webhookStatus = await telegram.getWebhookInfo();
-    // globalObject.loger.debug('Webhook status', webhookStatus);
+    globalObject.loger.debug('Starting a bot in production mode');
+    const telegram = new Telegram(process.env.TELEGRAM_TOKEN, {});
+
+    await telegram.deleteWebhook();
+
+    const tlsOptions = {
+        key: fs.readFileSync(process.env.PATH_TO_KEY),
+        cert: fs.readFileSync(process.env.PATH_TO_CERT)
+    };
+
+    await tgbot.telegram.setWebhook(
+        `${process.env.WEBHOOK_URL}:${process.env.WEBHOOK_PORT}/${process.env.TELEGRAM_TOKEN}`,
+        {
+            source: 'cert.pem'
+        }
+    );
+
+    await tgbot.startWebhook(`/${process.env.TELEGRAM_TOKEN}`, tlsOptions, +process.env.WEBHOOK_PORT);
+
+    const webhookStatus = await telegram.getWebhookInfo();
+    globalObject.loger.debug('Webhook status', webhookStatus);
 }

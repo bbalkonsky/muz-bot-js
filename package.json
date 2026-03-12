@@ -6,13 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "./node_modules/typescript/bin/tsc",
-    "start": "tsc && copyfiles -u 1 \"app/lib/**\" dist/app && node dist/app.js"
+    "start": "tsc && node dist/app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "copyfiles": "^2.4.1",
     "tslint": "^6.1.2"
   },
   "dependencies": {
