@@ -12,11 +12,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "copyfiles": "^2.4.1",
     "tslint": "^6.1.2"
   },
   "dependencies": {
     "@types/node": "^14.0.20",
+    "copyfiles": "^2.4.1",
     "axios": "^0.21.2",
     "process": "^0.11.10",
     "reflect-metadata": "^0.1.13",
